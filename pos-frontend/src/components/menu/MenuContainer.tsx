@@ -10,6 +10,7 @@ import { addItems, removeItem } from "../../redux/slices/cartSlice";
 import type { AppDispatch, RootState } from "../../redux/store";
 import { AUDFormatter } from "../../utils/currency";
 import { getMenus } from "../../https";
+import { posConfig } from "../../config.js";
 import useDragScroll from "../../hooks/useDragScroll";
 import useVerticalDragScroll from "../../hooks/useVerticalDragScroll";
 
@@ -36,11 +37,8 @@ interface MenusResponseData {
   data?: MenuCategory[];
 }
 
-const MENU_IMAGES_BASE_URL: string =
-  import.meta.env.VITE_MENU_IMAGES_BASE_URL ?? "";
-
 const getMenuItemImageUrl = (uuid: string): string => {
-  return `${MENU_IMAGES_BASE_URL}/${uuid}.png`;
+  return `${posConfig().menuImagesBaseUrl}/${uuid}.png`;
 };
 
 const MenuContainer = () => {

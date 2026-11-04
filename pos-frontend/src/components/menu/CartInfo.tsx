@@ -9,6 +9,7 @@ import {
 } from "../../redux/slices/cartSlice";
 import type { AppDispatch, RootState } from "../../redux/store";
 import { AUDFormatter } from "../../utils/currency";
+import { posConfig } from "../../config.js";
 
 interface CartItem {
   uuid: string;
@@ -18,11 +19,8 @@ interface CartItem {
   pricePerQuantity?: number;
 }
 
-const MENU_IMAGES_BASE_URL: string =
-  import.meta.env.VITE_MENU_IMAGES_BASE_URL ?? "";
-
 const getMenuItemImageUrl = (uuid: string): string => {
-  return `${MENU_IMAGES_BASE_URL}/${uuid}.png`;
+  return `${posConfig().menuImagesBaseUrl}/${uuid}.png`;
 };
 
 const CartInfo = () => {

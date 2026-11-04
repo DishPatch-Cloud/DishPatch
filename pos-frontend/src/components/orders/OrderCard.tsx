@@ -3,6 +3,7 @@ import { IoClose } from "react-icons/io5";
 
 import { formatDateAndTime } from "../../utils";
 import type { Order } from "../../types/order";
+import { posConfig } from "../../config.js";
 
 interface OrderCardProps {
   order: Order;
@@ -13,11 +14,8 @@ type CustomerOrderStatus =
   | "Completed"
   | "Cancelled";
 
-const MENU_IMAGES_BASE_URL: string =
-  import.meta.env.VITE_MENU_IMAGES_BASE_URL ?? "";
-
 const getMenuItemImageUrl = (uuid: string): string => {
-  return `${MENU_IMAGES_BASE_URL}/${uuid}.png`;
+  return `${posConfig().menuImagesBaseUrl}/${uuid}.png`;
 };
 
 const OrderCard = ({ order }: OrderCardProps) => {

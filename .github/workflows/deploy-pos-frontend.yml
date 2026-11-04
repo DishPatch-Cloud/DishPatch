@@ -125,6 +125,16 @@ jobs:
           VITE_MENU_IMAGES_BASE_URL: https://${{ env.MENU_IMAGES_BUCKET }}.s3.${{ env.AWS_REGION }}.amazonaws.com
         run: yarn build
 
+      - name: Write the site config
+        working-directory: pos-frontend
+        run: |
+          cat > dist/config.js << EOF
+          window.DISHPATCH_POS = {
+            backendUrl: "https://posapi.dish-patch.com",
+            menuImagesBaseUrl: "https://${MENU_IMAGES_BUCKET}.s3.${AWS_REGION}.amazonaws.com"
+          };
+          EOF
+
       - name: Upload to S3
         run: aws s3 sync pos-frontend/dist/ "s3://${{ steps.outputs.outputs.bucket }}/" --delete
 
