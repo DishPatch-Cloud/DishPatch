@@ -22,7 +22,7 @@ const Header: React.FC = () => {
     clearPasswordSession();
     dispatch(removeUser());
     if (isAuthenticated) {
-      logout({ logoutParams: { returnTo: `${window.location.origin}/auth` } });
+      logout({ logoutParams: { returnTo: window.location.origin } });
       return;
     }
     navigate("/auth");
