@@ -257,11 +257,11 @@ the email and name. The API checks the token signature against the tenant JWKS, 
 the issuer `https://dish-patch.au.auth0.com/`, the audience `https://pos.dish-patch`, and the
 POS application client id.
 
-The first accepted sign-in on a stack becomes `owner`. Later sign-ins start as `staff`. If the
-verified email already has a POS profile from before Auth0, that profile keeps its `userId`,
-role and data, and is linked to the Auth0 subject on first sign-in. An unverified email cannot
-open or claim a profile (`403`). A missing or invalid token returns `401`. A stack with no Auth0
-settings returns `503`.
+The first accepted sign-in on a stack becomes `owner`. Later sign-ins start as `staff`. Email
+verification is not required. If a verified email already has a POS profile from before Auth0,
+that profile keeps its `userId`, role and data, and is linked to the Auth0 subject. An
+unverified sign-in opens its own profile and does not take over an existing one. A missing or
+invalid token returns `401`. A stack with no Auth0 settings returns `503`.
 
 ### Response shapes
 

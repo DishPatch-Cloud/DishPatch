@@ -100,13 +100,10 @@ async function ensureAuth0User({ subject, email, name, emailVerified }) {
   if (!validateEmail(normalizedEmail)) {
     throw Object.assign(new Error("Auth0 did not provide an email address."), { statusCode: 400 });
   }
-  // Only a verified email may open or claim a profile. Otherwise someone could sign up with a
-  // colleague's address and take over their role.
-  if (emailVerified !== true) {
-    throw Object.assign(new Error("Verify your email address in DishPatch before using the POS."), { statusCode: 403 });
-  }
 
-  const existingByEmail = await getUserByEmail(normalizedEmail);
+  // A verified email may take over the profile already stored for that address. An unverified
+  // signup still gets its own profile, so staff do not have to confirm the email first.
+  const existingByEmail = emailVerified === true ? await getUserByEmail(normalizedEmail) : null;
   if (existingByEmail) {
     if (existingByEmail.auth0Subject && existingByEmail.auth0Subject !== subject) {
       throw Object.assign(new Error("This email is already linked to a different sign-in."), { statusCode: 409 });
