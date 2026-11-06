@@ -34,6 +34,7 @@ const useLoadData = () => {
 
     const fail = (error) => {
       if (cancelled) return;
+      cancelled = true;
       console.log("useLoadData error:", error);
       clearPasswordSession();
       dispatch(removeUser());

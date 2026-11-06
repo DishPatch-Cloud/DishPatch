@@ -25,9 +25,10 @@ export function savePasswordSession(session) {
 }
 
 export function clearPasswordSession() {
+  const hadSession = sessionStorage.getItem(STORAGE_KEY) !== null;
   sessionStorage.removeItem(STORAGE_KEY);
   setSessionTokens(null);
-  listeners.forEach((listener) => listener());
+  if (hadSession) listeners.forEach((listener) => listener());
 }
 
 export function subscribePasswordSession(listener) {

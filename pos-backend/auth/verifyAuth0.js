@@ -1,45 +1,31 @@
-const jwt = require("jsonwebtoken");
-const jwksRsa = require("jwks-rsa");
-
-const clients = new Map();
-
-function signingKeys(domain) {
-  const cached = clients.get(domain);
-  if (cached) return cached;
-  const created = jwksRsa({
-    jwksUri: `https://${domain}/.well-known/jwks.json`,
-    cache: true,
-    rateLimit: true,
-  });
-  clients.set(domain, created);
-  return created;
+// jose is ESM-only. Load it with import() so the Lambda, which is CommonJS, can start.
+let josePromise;
+function loadJose() {
+  if (!josePromise) josePromise = import("jose");
+  return josePromise;
 }
 
-function verify(token, { domain, audience }) {
-  return new Promise((resolve, reject) => {
-    jwt.verify(
-      token,
-      (header, callback) => {
-        if (header.alg !== "RS256") {
-          callback(new Error("Auth0 token must be signed with RS256."));
-          return;
-        }
-        signingKeys(domain).getSigningKey(header.kid, (error, key) => {
-          if (error) {
-            callback(error);
-            return;
-          }
-          callback(null, key.getPublicKey());
-        });
-      },
-      {
-        algorithms: ["RS256"],
-        audience,
-        issuer: `https://${domain}/`,
-      },
-      (error, payload) => (error ? reject(error) : resolve(payload)),
-    );
+const keySets = new Map();
+
+async function verify(token, { domain, audience }) {
+  const { createRemoteJWKSet, decodeProtectedHeader, jwtVerify } = await loadJose();
+  const header = decodeProtectedHeader(token);
+  if (header.alg !== "RS256") {
+    throw new Error("Auth0 token must be signed with RS256.");
+  }
+
+  let keys = keySets.get(domain);
+  if (!keys) {
+    keys = createRemoteJWKSet(new URL(`https://${domain}/.well-known/jwks.json`));
+    keySets.set(domain, keys);
+  }
+
+  const { payload } = await jwtVerify(token, keys, {
+    algorithms: ["RS256"],
+    audience,
+    issuer: `https://${domain}/`,
   });
+  return payload;
 }
 
 // Access token authorises the API call. The ID token carries the email and name used to open a POS profile.
