@@ -7,21 +7,24 @@ import type { RootState } from "../../redux/store";
 import { useNavigate } from "react-router-dom";
 
 import logo from "../../assets/images/HarbsLogo.png";
-import { setSessionTokens } from "../../https/axiosWrapper";
+import { clearPasswordSession } from "../../auth/session";
 import { removeUser } from "../../redux/slices/userSlice";
 import { ROLE_LABELS, effectiveRole } from "../../utils/roles";
 
 const Header: React.FC = () => {
   const userData = useSelector((state: RootState) => state.user);
-  const { logout } = useAuth0();
+  const { logout, isAuthenticated } = useAuth0();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogout = (): void => {
-    setSessionTokens(null);
+    clearPasswordSession();
     dispatch(removeUser());
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    if (isAuthenticated) {
+      logout({ logoutParams: { returnTo: `${window.location.origin}/auth` } });
+      return;
+    }
     navigate("/auth");
   };
 
