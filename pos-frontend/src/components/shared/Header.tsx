@@ -1,50 +1,28 @@
 import React from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { FaUserCircle } from "react-icons/fa";
 import { IoLogOut } from "react-icons/io5";
-import { useMutation } from "@tanstack/react-query";
-import type { AxiosError, AxiosResponse } from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import type { RootState, AppDispatch } from "../../redux/store";
+import type { RootState } from "../../redux/store";
 import { useNavigate } from "react-router-dom";
 
 import logo from "../../assets/images/HarbsLogo.png";
-import { logout } from "../../https";
+import { setSessionTokens } from "../../https/axiosWrapper";
 import { removeUser } from "../../redux/slices/userSlice";
 import { ROLE_LABELS, effectiveRole } from "../../utils/roles";
 
-interface LogoutResponseData {
-  success: boolean;
-  message: string;
-}
-
-interface ErrorResponseData {
-  message?: string;
-}
-
 const Header: React.FC = () => {
   const userData = useSelector((state: RootState) => state.user);
+  const { logout } = useAuth0();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const logoutMutation = useMutation<
-    AxiosResponse<LogoutResponseData>,
-    AxiosError<ErrorResponseData>
-  >({
-    mutationFn: logout,
-
-    onSuccess: () => {
-      dispatch(removeUser());
-      navigate("/auth");
-    },
-
-    onError: (error) => {
-      console.error(error);
-    },
-  });
-
   const handleLogout = (): void => {
-    logoutMutation.mutate();
+    setSessionTokens(null);
+    dispatch(removeUser());
+    logout({ logoutParams: { returnTo: window.location.origin } });
+    navigate("/auth");
   };
 
   return (
@@ -81,8 +59,7 @@ const Header: React.FC = () => {
           <button
             type="button"
             onClick={handleLogout}
-            disabled={logoutMutation.isPending}
-            className="ml-2 rounded-xl p-2 text-text-secondary transition hover:bg-secondary-light hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+            className="ml-2 rounded-xl p-2 text-text-secondary transition hover:bg-secondary-light hover:text-primary"
           >
             <IoLogOut size={28} />
           </button>

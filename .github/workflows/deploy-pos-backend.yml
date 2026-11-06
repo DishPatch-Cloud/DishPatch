@@ -34,6 +34,11 @@ env:
   # Update this to your NEW frontend domain(s)
   CORS_ALLOW_ORIGINS: "https://pos.dish-patch.com"
 
+  # DishPatch POS single-page application. The client id is public.
+  AUTH0_DOMAIN: dish-patch.au.auth0.com
+  AUTH0_AUDIENCE: https://pos.dish-patch
+  AUTH0_CLIENT_ID: tA0OZrCKWecFqypkUdbMxUc0F9WbLXgr
+
   # Optional: SSM parameter name (without leading slash)
   JWT_SECRET_SSM_PARAM_NAME: "RestaurantPOS/JWT_SECRET"
 
@@ -105,6 +110,9 @@ jobs:
             "StageName=${STAGE_NAME}"
             "CorsAllowOrigins=${CORS_ALLOW_ORIGINS}"
             "JwtSecretSsmParamName=${JWT_SECRET_SSM_PARAM_NAME}"
+            "Auth0Domain=${AUTH0_DOMAIN}"
+            "Auth0Audience=${AUTH0_AUDIENCE}"
+            "Auth0ClientId=${AUTH0_CLIENT_ID}"
           )
 
           # Optional custom domain (only pass when set)

@@ -122,6 +122,9 @@ jobs:
         working-directory: pos-frontend
         env:
           VITE_BACKEND_URL: 'https://posapi.dish-patch.com'
+          VITE_AUTH0_DOMAIN: dish-patch.au.auth0.com
+          VITE_AUTH0_AUDIENCE: https://pos.dish-patch
+          VITE_AUTH0_CLIENT_ID: tA0OZrCKWecFqypkUdbMxUc0F9WbLXgr
           VITE_MENU_IMAGES_BUCKET: ${{ env.MENU_IMAGES_BUCKET }}
           VITE_MENU_IMAGES_BASE_URL: https://${{ env.MENU_IMAGES_BUCKET }}.s3.${{ env.AWS_REGION }}.amazonaws.com
         run: yarn build

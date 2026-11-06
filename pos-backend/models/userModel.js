@@ -79,6 +79,67 @@ async function setUserRole(userId, role) {
   }
 }
 
+// Find the POS profile linked to an Auth0 subject.
+async function getUserByAuth0Subject(subject) {
+  const result = await docClient.send(new QueryCommand({
+    TableName: TABLE_NAME,
+    IndexName: "Auth0SubjectIndex",
+    KeyConditionExpression: "auth0Subject = :subject",
+    ExpressionAttributeValues: { ":subject": subject },
+  }));
+  return result.Items?.[0];
+}
+
+// Open a POS profile for an Auth0 user. The first profile in this stack is the owner.
+// An existing email keeps its role and is linked to this Auth0 subject.
+async function ensureAuth0User({ subject, email, name, emailVerified }) {
+  const existingBySubject = await getUserByAuth0Subject(subject);
+  if (existingBySubject) return existingBySubject;
+
+  const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+  if (!validateEmail(normalizedEmail)) {
+    throw Object.assign(new Error("Auth0 did not provide an email address."), { statusCode: 400 });
+  }
+  // Only a verified email may open or claim a profile. Otherwise someone could sign up with a
+  // colleague's address and take over their role.
+  if (emailVerified !== true) {
+    throw Object.assign(new Error("Verify your email address in DishPatch before using the POS."), { statusCode: 403 });
+  }
+
+  const existingByEmail = await getUserByEmail(normalizedEmail);
+  if (existingByEmail) {
+    if (existingByEmail.auth0Subject && existingByEmail.auth0Subject !== subject) {
+      throw Object.assign(new Error("This email is already linked to a different sign-in."), { statusCode: 409 });
+    }
+    if (!existingByEmail.auth0Subject) {
+      await docClient.send(new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: { userId: existingByEmail.userId },
+        UpdateExpression: "set auth0Subject = :subject, updatedAt = :updatedAt",
+        ExpressionAttributeValues: {
+          ":subject": subject,
+          ":updatedAt": new Date().toISOString(),
+        },
+      }));
+      existingByEmail.auth0Subject = subject;
+    }
+    return existingByEmail;
+  }
+
+  const role = (await hasAnyUser()) ? "staff" : "owner";
+  const item = {
+    userId: subject,
+    auth0Subject: subject,
+    role,
+    name: name || normalizedEmail,
+    email: normalizedEmail,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: item }));
+  return item;
+}
+
 // Get user by email (for login)
 async function getUserByEmail(email) {
   const params = new QueryCommand({
@@ -139,6 +200,8 @@ module.exports = {
   listUsers,
   setUserRole,
   getUserByEmail,
+  getUserByAuth0Subject,
+  ensureAuth0User,
   getUserById, // 👈 added export
   verifyPassword,
   updateUser,

@@ -2,11 +2,8 @@ import { axiosWrapper } from "./axiosWrapper";
 
 // API Endpoints
 
-// Auth Endpoints
-export const login = (data) => axiosWrapper.post("/api/user/login", data);
-export const register = (data) => axiosWrapper.post("/api/user/register", data);
+// Auth Endpoints. Sign-in is Auth0. This only reads the POS profile.
 export const getUserData = () => axiosWrapper.get("/api/user");
-export const logout = () => axiosWrapper.post("/api/user/logout");
 
 // Table Endpoints
 export const addTable = (data) => axiosWrapper.post("/api/table/", data);

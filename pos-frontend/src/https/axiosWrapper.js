@@ -13,3 +13,17 @@ export const axiosWrapper = axios.create({
   withCredentials: true,
   headers: { ...defaultHeader },
 });
+
+let accessToken = "";
+let idToken = "";
+
+export function setSessionTokens(tokens) {
+  accessToken = tokens?.accessToken || "";
+  idToken = tokens?.idToken || "";
+}
+
+axiosWrapper.interceptors.request.use((config) => {
+  if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
+  if (idToken) config.headers["x-auth0-id-token"] = idToken;
+  return config;
+});

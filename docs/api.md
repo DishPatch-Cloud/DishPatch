@@ -248,17 +248,20 @@ CORS allows credentials. The allowed origin is `http://localhost:5173` unless `N
 `lambda` — which the deployed function sets — in which case it comes from
 `CORS_ALLOW_ORIGINS`, deployed as `https://pos.dish-patch.com`.
 
-### Session cookie
+### Auth0 session
 
-Login sets an `accessToken` cookie holding a JWT. The token expires after one day; the cookie
-itself is kept for 30 days, and is `httpOnly`. Every route below except `register` and `login`
-requires it, and fails with `401` — `"Please provide token!"`, `"Invalid Token!"` or
-`"User not exist!"` — without it.
+The POS does not issue its own passwords or session cookies. The browser signs in with the
+DishPatch POS Auth0 application and sends that application's access token as
+`Authorization: Bearer`. It also sends the ID token in `x-auth0-id-token` so the API can read
+the email and name. The API checks the token signature against the tenant JWKS, and requires
+the issuer `https://dish-patch.au.auth0.com/`, the audience `https://pos.dish-patch`, and the
+POS application client id.
 
-The cookie code sets `Secure` and `SameSite=None` only when `NODE_ENV` is `production`. The
-deployed function runs with `NODE_ENV=lambda`, so that branch is never taken: the live cookie
-is `SameSite=Lax` and is not marked `Secure`. It works because `pos.dish-patch.com` and
-`posapi.dish-patch.com` are the same site.
+The first accepted sign-in on a stack becomes `owner`. Later sign-ins start as `staff`. If the
+verified email already has a POS profile from before Auth0, that profile keeps its `userId`,
+role and data, and is linked to the Auth0 subject on first sign-in. An unverified email cannot
+open or claim a profile (`403`). A missing or invalid token returns `401`. A stack with no Auth0
+settings returns `503`.
 
 ### Response shapes
 
@@ -276,10 +279,7 @@ local run, but not in the deployed function.
 | Method and path | Auth | Body | Success | Errors |
 |:--|:--:|:--|:--|:--|
 | `GET /` | | | `200 {"message": "Hello from POS Server!"}` | |
-| `POST /api/user/register` | | `name`, `email`, `password` | `201`, user without password | `400` missing field or user exists; `500` malformed email |
-| `POST /api/user/login` | | `email`, `password` | `200`, user, sets cookie | `400` missing field; `401 "Invalid Username"` or `"Wrong Password"` |
-| `POST /api/user/logout` | ✓ | | `200`, clears cookie | |
-| `GET /api/user` | ✓ | | `200`, the logged-in user | `404` |
+| `GET /api/user` | ✓ | | `200`, the logged-in user, without a password | `404` |
 | `POST /api/order` | ✓ | see below | `201`, the order | |
 | `GET /api/order` | ✓ | | `200`, every order, plus `tableNo` | |
 | `GET /api/order/:id` | ✓ | | `200` | `404 "Order not found!"` |
@@ -337,16 +337,17 @@ Everything is therefore available to anyone who can reach `controlapi.dish-patch
 
 nginx terminates TLS and passes everything through; it adds no access control.
 
-### POS backend: authentication without authorisation
+### POS backend: Auth0, with roles inside the stack
 
-Every POS route except register and login requires a valid session. Menu editing is limited to
-`owner` and `manager`, and staff management to `owner`. Orders and tables have no role check yet:
-any logged-in user can read and change them.
+Every POS route requires an Auth0 access token for the POS application. Menu editing is limited
+to `owner` and `manager`, and staff management to `owner`. Orders and tables have no role check
+yet: any signed-in user can read and change them.
 
-Roles belong to one stack, which is one location. The first user to register becomes `owner`;
-later registrations start as `staff`. Users created before roles existed are treated as `owner`
-until an owner sets their role. Registration is still open, so anyone who can reach the POS
-register page can join a stack as `staff`.
+Roles belong to one stack, which is one location. The first Auth0 user to open the POS becomes
+`owner`; later users start as `staff`. Users created before roles existed are treated as `owner`
+until an owner sets their role. Anyone who can sign up in the POS Auth0 application can join a
+stack as `staff` on their first visit. Turn off signups in that Auth0 application to make it
+invite-only.
 
 ---
 
@@ -358,8 +359,6 @@ register page can join a stack as `staff`.
 | `PUT /api/order/:id`, `PUT /api/table/:id` | DynamoDB updates with no condition, which makes them upserts. An unknown id creates a new row instead of returning the documented `404`; that branch cannot run. The control backend guards the same operation on the same Orders table. |
 | `PUT /api/order/:id` | `orderStatus` is stored as given — any string. The control backend accepts only the three contract values. |
 | `PUT /api/table/:id` | Omitting `status` resets it to `"Available"`, so an update that only changes `guests` frees an occupied table. |
-| `POST /api/user/login`, `GET /api/user` | Return the whole stored user, **including the bcrypt password hash**. The control backend strips it from its own responses. |
-| Session cookie | Never marked `Secure` in deployment: the flag is gated on `NODE_ENV=production`, and the function runs with `NODE_ENV=lambda`. See [Session cookie](#session-cookie). |
 | `PATCH /api/users/update/*` | Broken, as described [above](#patch-apiusersupdateusernameid-and-patch-apiusersupdatepasswordid). |
 
 ---
@@ -372,8 +371,8 @@ register page can join a stack as `staff`.
 | Create returns | `200` | `201` |
 | Success body | `{success, message, data}` on orders and users only | `{success, data}`, plus `message` on writes |
 | Error body | the envelope, or Spring's default | `{status, message}` |
-| Authentication | none | cookie JWT |
+| Authentication | none | Auth0 access token |
 | `orderStatus` on update | the three contract values only | any string |
 | Status transitions | only out of `Preparing` | any |
 | Unknown id on update | `404` | creates a row |
-| Password hash in responses | never | on login and `GET /api/user` |
+| Password hash in responses | never | never |

@@ -174,22 +174,18 @@ dispatches until the first one gets there.
 
 ## Load test
 
-Log in first:
+Sign in to the POS in a browser, then paste the Auth0 access token:
 
 ```bash
-read -rp "POS email: <email>" POS_EMAIL && read -rsp "POS password: <password>" POS_PASS && echo
-
-curl -s -c /tmp/dishpatch-cookies.txt -X POST https://posapi.dish-patch.com/api/user/login \
-  -H 'Content-Type: application/json' \
-  -d "{\"email\":\"$POS_EMAIL\",\"password\":\"$POS_PASS\"}" \
-  -w '\nlogin: %{http_code}\n' -o /dev/null
+read -rsp "Auth0 access token: " POS_TOKEN && echo
 ```
 
 Send twenty orders to randomly chosen drop points:
 
 ```bash
 for t in $(awk 'BEGIN{srand();n=split("T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12 T13 T14 T15 T16 T17 T18 R1 R2 R3 R4 R5 R6 R7",a," ");for(i=1;i<=20;i++)printf "%s ",a[int(rand()*n)+1]}'); do
-  curl -s -b /tmp/dishpatch-cookies.txt -X POST https://posapi.dish-patch.com/api/order \
+  curl -s -X POST https://posapi.dish-patch.com/api/order \
+    -H "Authorization: Bearer $POS_TOKEN" \
     -H 'Content-Type: application/json' \
     -d "{\"customerDetails\":{\"name\":\"Load test $t\",\"phone\":\"0400000000\",\"guests\":2},\"orderStatus\":\"Preparing\",\"bills\":{\"total\":0,\"tax\":0,\"totalWithTax\":0},\"items\":[],\"table\":\"$t\",\"paymentMethod\":\"Cash\"}" \
     -o /dev/null -w "$t %{http_code}\n"
