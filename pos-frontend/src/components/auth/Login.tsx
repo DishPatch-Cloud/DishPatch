@@ -17,6 +17,7 @@ interface User {
   userId: string;
   name: string;
   email: string;
+  role?: string;
 }
 
 interface LoginResponseData {
@@ -82,14 +83,14 @@ const Login = () => {
       // }
 
       const user = response.data.data;
-      const { userId, accountId, name, email } = user;
+      const { userId, name, email, role } = user;
 
       dispatch(
         setUser({
           userId,
-          accountId,
           name,
           email,
+          role,
         })
       );
 

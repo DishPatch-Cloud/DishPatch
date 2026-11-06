@@ -3,18 +3,21 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const getJwtSecret = require("../config/jwtSecret");
 const getCookieOptions = require("../utils/cookieOptions");
-const { validAccountId } = require("../models/account");
 const {
   createUser,
   getUserByEmail,
   getUserById,
   verifyPassword,
+  hasAnyUser,
+  listUsers,
+  setUserRole,
 } = require("../models/userModel");
+const { ROLES, roleOf } = require("../middlewares/roles");
 
 // 🔹 Register new user
 const register = async (req, res, next) => {
   try {
-    const { name, email, password, accountId } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return next(createHttpError(400, "All fields are required!"));
@@ -24,11 +27,10 @@ const register = async (req, res, next) => {
     if (isUserPresent) {
       return next(createHttpError(400, "User already exists!"));
     }
-    if (typeof accountId === "string" && accountId.trim() && !validAccountId(accountId.trim())) {
-      return next(createHttpError(400, "Account ID must look like acct_ followed by letters, numbers, or hyphens."));
-    }
 
-    const newUser = await createUser({ name, email, password, accountId });
+    // One stack is one location. The first user of the stack owns it; later users start as staff.
+    const role = (await hasAnyUser()) ? "staff" : "owner";
+    const newUser = await createUser({ name, email, password, role });
 
     res.status(201).json({
       success: true,
@@ -92,6 +94,48 @@ const getUserData = async (req, res, next) => {
   }
 };
 
+// 🔹 List staff in this stack (owner only)
+const listStaff = async (req, res, next) => {
+  try {
+    const users = await listUsers();
+    res.status(200).json({
+      success: true,
+      data: users.map((user) => ({ ...user, role: roleOf(user) })),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// 🔹 Change a user's role (owner only)
+const changeRole = async (req, res, next) => {
+  try {
+    const { role } = req.body;
+    const { userId } = req.params;
+
+    if (!ROLES.includes(role)) {
+      return next(createHttpError(400, "Role must be owner, manager or staff."));
+    }
+    // An owner cannot demote themselves, so the stack always keeps an owner.
+    if (userId === req.user.userId && role !== "owner") {
+      return next(createHttpError(400, "You cannot remove your own owner role."));
+    }
+
+    const updated = await setUserRole(userId, role);
+    if (!updated) {
+      return next(createHttpError(404, "User not found!"));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Role updated.",
+      data: { userId: updated.userId, role: updated.role },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // 🔹 Logout user
 const logout = async (req, res, next) => {
   try {
@@ -105,4 +149,4 @@ const logout = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, getUserData, logout };
+module.exports = { register, login, getUserData, logout, listStaff, changeRole };

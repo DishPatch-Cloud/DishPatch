@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError, AxiosResponse } from "axios";
 import { enqueueSnackbar } from "notistack";
 
 import BottomNav from "../components/shared/BottomNav";
-import { addMenuItem } from "../https";
+import { addMenu } from "../https";
+import type { RootState } from "../redux/store";
+import { canEditMenu } from "../utils/roles";
 
 interface DishForm {
   menuName: string;
@@ -17,6 +20,7 @@ const emptyForm = (): DishForm => ({ menuName: "", name: "", price: "" });
 
 const MenuEditor = () => {
   const navigate = useNavigate();
+  const role = useSelector((state: RootState) => state.user.role);
   const [form, setForm] = useState<DishForm>(emptyForm());
 
   useEffect(() => {
@@ -28,7 +32,7 @@ const MenuEditor = () => {
     AxiosError<{ message?: string }>,
     DishForm
   >({
-    mutationFn: (dish) => addMenuItem({
+    mutationFn: (dish) => addMenu({
       menuName: dish.menuName.trim(),
       name: dish.name.trim(),
       price: Number(dish.price),
@@ -42,6 +46,10 @@ const MenuEditor = () => {
     },
   });
 
+  if (!canEditMenu(role)) {
+    return <Navigate to="/menu" replace />;
+  }
+
   return (
     <section className="h-[calc(100dvh-5rem)] overflow-hidden bg-background font-sans">
       <div className="h-[calc(100%-5rem)] overflow-y-auto px-4 py-5 sm:px-6">
@@ -51,7 +59,8 @@ const MenuEditor = () => {
           </button>
           <h1 className="mt-3 text-2xl font-bold text-text-primary">Edit menu</h1>
           <p className="mt-2 text-sm leading-6 text-text-secondary">
-            Add a dish to this account. A new category is created when the category name is new. The dish is visible only on this account's menu.
+            Add a dish to this location's menu. Every staff member sees the same menu.
+            A new category is created when the category name is new.
           </p>
           <form
             className="mt-6 space-y-4 rounded-2xl border border-border bg-surface p-5 shadow-card"

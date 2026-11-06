@@ -288,7 +288,9 @@ local run, but not in the deployed function.
 | `GET /api/table` | ✓ | | `200` | |
 | `PUT /api/table/:id` | ✓ | `status`, `seats`, `customerName`, `customerPhone`, `guests` — all optional | `200` | see [known issues](#known-issues) |
 | `GET /api/menu` | ✓ | | `200`, menus with their items | |
-| `POST /api/menu` | ✓ | `menuName`, `items`, optional `bgColor`, `icon` | `201`, no `data` | `400` |
+| `POST /api/menu` | ✓ owner or manager | `menuName` (category, 1–40 chars), `name` (dish, 1–80 chars), `price` (0–10000) | `201`, the new dish in `data` | `400` invalid field; `403` for staff |
+| `GET /api/user/staff` | ✓ owner | | `200`, every user in this stack with `role` | `403` |
+| `PUT /api/user/staff/:userId/role` | ✓ owner | `role`: `owner`, `manager` or `staff` | `200` | `400` invalid role or removing your own owner role; `404`; `403` |
 | `POST /api/payment` | ✓ | `orderIds[]`, `transactionType`, `amount` | **never responds** | `400` invalid input |
 
 ### Creating an order
@@ -337,8 +339,14 @@ nginx terminates TLS and passes everything through; it adds no access control.
 
 ### POS backend: authentication without authorisation
 
-Every POS route except register and login requires a valid session, but there is no role or
-ownership check anywhere. Any logged-in user can read and change every order, table and menu.
+Every POS route except register and login requires a valid session. Menu editing is limited to
+`owner` and `manager`, and staff management to `owner`. Orders and tables have no role check yet:
+any logged-in user can read and change them.
+
+Roles belong to one stack, which is one location. The first user to register becomes `owner`;
+later registrations start as `staff`. Users created before roles existed are treated as `owner`
+until an owner sets their role. Registration is still open, so anyone who can reach the POS
+register page can join a stack as `staff`.
 
 ---
 

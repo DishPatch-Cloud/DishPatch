@@ -1,9 +1,8 @@
 const docClient = require("../config/database");
 const config = require("../config/config");
-const { GetCommand, PutCommand, QueryCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { GetCommand, PutCommand, QueryCommand, ScanCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
-const { validAccountId } = require("./account");
 
 const TABLE_NAME = config.usersTable; // ✅ use CloudFormation-injected table name
 
@@ -22,17 +21,12 @@ async function createUser(user) {
   const hashedPassword = await bcrypt.hash(user.password, salt);
 
   const userId = user.userId || uuidv4();
-  const requestedAccountId = typeof user.accountId === "string" ? user.accountId.trim() : "";
-  if (requestedAccountId && !validAccountId(requestedAccountId)) {
-    throw new Error("Account ID must look like acct_ followed by letters, numbers, or hyphens.");
-  }
-  const accountId = requestedAccountId || `acct_${uuidv4()}`;
 
   const params = new PutCommand({
     TableName: TABLE_NAME,
     Item: {
       userId,
-      accountId,
+      role: user.role || "staff",
       name: user.name,
       email: user.email,
       password: hashedPassword,
@@ -42,7 +36,47 @@ async function createUser(user) {
   });
 
   await docClient.send(params);
-  return { userId, accountId, name: user.name, email: user.email };
+  return { userId, ...user, password: undefined }; // don’t return password
+}
+
+// True when the table already holds a user. The first user of a stack becomes its owner.
+async function hasAnyUser() {
+  const result = await docClient.send(new ScanCommand({ TableName: TABLE_NAME, Limit: 1 }));
+  return (result.Items?.length ?? 0) > 0;
+}
+
+// Every user in this stack, without password hashes.
+async function listUsers() {
+  const users = [];
+  let startKey;
+  do {
+    const result = await docClient.send(new ScanCommand({
+      TableName: TABLE_NAME,
+      ExclusiveStartKey: startKey,
+    }));
+    users.push(...(result.Items ?? []));
+    startKey = result.LastEvaluatedKey;
+  } while (startKey);
+  return users.map(({ userId, name, email, role }) => ({ userId, name, email, role: role || "owner" }));
+}
+
+// Returns null when the user does not exist.
+async function setUserRole(userId, role) {
+  try {
+    const result = await docClient.send(new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { userId },
+      UpdateExpression: "set #role = :role, updatedAt = :updatedAt",
+      ExpressionAttributeNames: { "#role": "role" },
+      ExpressionAttributeValues: { ":role": role, ":updatedAt": new Date().toISOString() },
+      ConditionExpression: "attribute_exists(userId)",
+      ReturnValues: "ALL_NEW",
+    }));
+    return result.Attributes;
+  } catch (error) {
+    if (error.name === "ConditionalCheckFailedException") return null;
+    throw error;
+  }
 }
 
 // Get user by email (for login)
@@ -101,6 +135,9 @@ async function updateUser(userId, updates) {
 
 module.exports = {
   createUser,
+  hasAnyUser,
+  listUsers,
+  setUserRole,
   getUserByEmail,
   getUserById, // 👈 added export
   verifyPassword,

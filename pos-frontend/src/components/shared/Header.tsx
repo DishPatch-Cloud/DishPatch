@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/HarbsLogo.png";
 import { logout } from "../../https";
 import { removeUser } from "../../redux/slices/userSlice";
+import { ROLE_LABELS, effectiveRole } from "../../utils/roles";
 
 interface LogoutResponseData {
   success: boolean;
@@ -73,7 +74,7 @@ const Header: React.FC = () => {
             </h2>
 
             <p className="text-xs text-text-secondary">
-              {userData.role || "Staff"}
+              {ROLE_LABELS[effectiveRole(userData.role)]}
             </p>
           </div>
 

@@ -12,7 +12,6 @@ interface RegisterFormData {
   name: string;
   email: string;
   password: string;
-  accountId: string;
 }
 
 interface RegisterResponseData {
@@ -28,7 +27,6 @@ const Register: React.FC<RegisterProps> = ({ setIsRegister }) => {
     name: "",
     email: "",
     password: "",
-    accountId: "",
   });
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,7 +62,6 @@ const Register: React.FC<RegisterProps> = ({ setIsRegister }) => {
         name: "",
         email: "",
         password: "",
-        accountId: "",
       });
 
       setTimeout(() => {
@@ -144,35 +141,6 @@ const Register: React.FC<RegisterProps> = ({ setIsRegister }) => {
               focus:ring-4 focus:ring-primary/10
             "
           />
-        </div>
-
-        <div>
-          <label
-            htmlFor="accountId"
-            className="mb-2 block text-sm font-medium text-text-secondary"
-          >
-            Existing account ID
-          </label>
-          <input
-            id="accountId"
-            type="text"
-            name="accountId"
-            value={formData.accountId}
-            onChange={handleChange}
-            placeholder="Leave empty to create a new account"
-            className="
-              w-full rounded-xl border border-border bg-surface
-              px-4 py-4 text-base text-text-primary
-              placeholder:text-text-muted
-              outline-none transition duration-200
-              hover:border-border-strong
-              focus:border-primary
-              focus:ring-4 focus:ring-primary/10
-            "
-          />
-          <p className="mt-2 text-xs leading-5 text-text-secondary">
-            Leave this empty to start a restaurant account. Paste an account ID from Profile to join a restaurant that already exists.
-          </p>
         </div>
 
         {/* Password */}

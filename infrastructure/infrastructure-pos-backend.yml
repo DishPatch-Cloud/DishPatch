@@ -64,8 +64,6 @@ Conditions:
 # Resources
 # ===========================
 Resources:
-  # Menu photos are public to read because the ordering website loads them directly.
-  # List and write stay private. New photos are stored under accounts/{accountId}/.
   # ---------------- S3 Bucket for Menu Photos ----------------
   MenuPhotoBucket:
     Type: AWS::S3::Bucket

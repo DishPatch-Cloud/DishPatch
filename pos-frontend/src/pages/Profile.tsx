@@ -10,7 +10,9 @@ import {
 import { MdChevronRight } from "react-icons/md";
 
 import BottomNav from "../components/shared/BottomNav";
+import StaffRoles from "../components/profile/StaffRoles";
 import type { RootState } from "../redux/store";
+import { ROLE_LABELS, effectiveRole } from "../utils/roles";
 
 interface ProfileActionProps {
   icon: ReactNode;
@@ -111,10 +113,11 @@ const Profile = () => {
 
                 <p className="mt-1 truncate text-sm text-text-secondary">
                   {displayEmail}
-                </p>
-                <p className="mt-2 break-all font-mono text-xs text-text-secondary">
-                  Account {userData.accountId || "acct_default"}
-                </p>
+                </p >
+
+                <p className="mt-1 text-xs font-semibold text-primary">
+                  {ROLE_LABELS[effectiveRole(userData.role)]}
+                </p >
               </div>
             </div>
 
@@ -136,6 +139,11 @@ const Profile = () => {
               </div>
             </div>
           </section>
+
+          {/* Staff access (owner only) */}
+          {effectiveRole(userData.role) === "owner" && (
+            <StaffRoles currentUserId={userData.userId} />
+          )}
 
           {/* Quick actions */}
           <section className="mt-6">

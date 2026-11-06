@@ -26,4 +26,9 @@ export const updateOrderStatus = ({ orderId, orderStatus }) =>
 
 // Menu Endpoints
 export const getMenus = () => axiosWrapper.get("/api/menu");
-export const addMenuItem = (data) => axiosWrapper.post("/api/menu", data);
+export const addMenu = (data) => axiosWrapper.post("/api/menu", data);
+
+// Staff Endpoints (owner only)
+export const getStaff = () => axiosWrapper.get("/api/user/staff");
+export const setStaffRole = (userId, role) =>
+  axiosWrapper.put(`/api/user/staff/${userId}/role`, { role });
