@@ -3,6 +3,7 @@ const config = require("../config/config");
 const { GetCommand, PutCommand, QueryCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
+const { validAccountId } = require("./account");
 
 const TABLE_NAME = config.usersTable; // ✅ use CloudFormation-injected table name
 
@@ -21,11 +22,17 @@ async function createUser(user) {
   const hashedPassword = await bcrypt.hash(user.password, salt);
 
   const userId = user.userId || uuidv4();
+  const requestedAccountId = typeof user.accountId === "string" ? user.accountId.trim() : "";
+  if (requestedAccountId && !validAccountId(requestedAccountId)) {
+    throw new Error("Account ID must look like acct_ followed by letters, numbers, or hyphens.");
+  }
+  const accountId = requestedAccountId || `acct_${uuidv4()}`;
 
   const params = new PutCommand({
     TableName: TABLE_NAME,
     Item: {
       userId,
+      accountId,
       name: user.name,
       email: user.email,
       password: hashedPassword,
@@ -35,7 +42,7 @@ async function createUser(user) {
   });
 
   await docClient.send(params);
-  return { userId, ...user, password: undefined }; // don’t return password
+  return { userId, accountId, name: user.name, email: user.email };
 }
 
 // Get user by email (for login)

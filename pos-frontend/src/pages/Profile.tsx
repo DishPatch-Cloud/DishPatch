@@ -111,7 +111,10 @@ const Profile = () => {
 
                 <p className="mt-1 truncate text-sm text-text-secondary">
                   {displayEmail}
-                </p >
+                </p>
+                <p className="mt-2 break-all font-mono text-xs text-text-secondary">
+                  Account {userData.accountId || "acct_default"}
+                </p>
               </div>
             </div>
 

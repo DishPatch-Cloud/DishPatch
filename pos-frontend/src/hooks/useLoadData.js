@@ -16,9 +16,9 @@ const useLoadData = () => {
         console.log("useLoadData response:", data);
 
         // ✅ Adapt to DynamoDB: backend sends { userId, ... }
-        const { userId, name, email, phone, role } = data.data || data;
+        const { userId, accountId, name, email, phone, role } = data.data || data;
 
-        dispatch(setUser({ userId, name, email, phone, role }));
+        dispatch(setUser({ userId, accountId, name, email, phone, role }));
       } catch (error) {
         console.log("useLoadData error:", error);
         dispatch(removeUser());

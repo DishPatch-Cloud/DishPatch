@@ -82,11 +82,12 @@ const Login = () => {
       // }
 
       const user = response.data.data;
-      const { userId, name, email } = user;
+      const { userId, accountId, name, email } = user;
 
       dispatch(
         setUser({
           userId,
+          accountId,
           name,
           email,
         })

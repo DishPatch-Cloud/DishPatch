@@ -26,4 +26,4 @@ export const updateOrderStatus = ({ orderId, orderStatus }) =>
 
 // Menu Endpoints
 export const getMenus = () => axiosWrapper.get("/api/menu");
-export const addMenu = (data) => axiosWrapper.post("/api/menu", data);
+export const addMenuItem = (data) => axiosWrapper.post("/api/menu", data);

@@ -1,37 +1,35 @@
 const createHttpError = require("http-errors");
-const { addMenuItem, getAllMenuItems } = require("../models/menuModel");
+const { accountIdOf } = require("../models/account");
+const { addDish, getMenusForAccount } = require("../models/menuModel");
 
-// ➤ Add a new menu
+function readDish(body) {
+  const menuName = typeof body?.menuName === "string" ? body.menuName.trim() : "";
+  const name = typeof body?.name === "string" ? body.name.trim() : "";
+  const price = Number(body?.price);
+  if (menuName.length < 1 || menuName.length > 40) return "Category name must be 1 to 40 characters.";
+  if (name.length < 1 || name.length > 80) return "Dish name must be 1 to 80 characters.";
+  if (!Number.isFinite(price) || price < 0 || price > 10000) return "Price must be a number from 0 to 10000.";
+  return { menuName, name, price };
+}
+
 const addMenu = async (req, res, next) => {
   try {
-    console.log("📥 [addMenu] Received request body:", req.body);
-
-    const menu = req.body;
-
-    if (!menu || !menu.menuName || !menu.items) {
-      console.warn("⚠️ [addMenu] Missing required fields in menu:", menu);
-      return next(createHttpError(400, "Menu must include 'menuName' and 'items'"));
-    }
-
-    await addMenuItem(menu);
-    console.log("✅ [addMenu] Successfully added menu:", menu.menuName);
-
+    const dish = readDish(req.body);
+    if (typeof dish === "string") return next(createHttpError(400, dish));
+    const saved = await addDish(accountIdOf(req.user), dish);
     res.status(201).json({
       success: true,
-      message: "Menu added successfully",
+      message: "Dish added.",
+      data: saved,
     });
   } catch (error) {
-    console.error("❌ [addMenu] Error:", error);
     next(error);
   }
 };
 
-// ➤ Get all menus
 const getMenus = async (req, res, next) => {
   try {
-    // console.log("📡 [getMenus] Fetching all menu items from DynamoDB...");
-
-    const menus = await getAllMenuItems();
+    const menus = await getMenusForAccount(accountIdOf(req.user));
 
     // console.log("📦 [getMenus] Raw data from DynamoDB:", JSON.stringify(menus, null, 2));
 

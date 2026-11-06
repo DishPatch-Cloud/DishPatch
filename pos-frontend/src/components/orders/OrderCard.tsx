@@ -3,6 +3,7 @@ import { IoClose } from "react-icons/io5";
 
 import { formatDateAndTime } from "../../utils";
 import type { Order } from "../../types/order";
+import { menuImageUrl } from "../../menuImage";
 
 interface OrderCardProps {
   order: Order;
@@ -12,13 +13,6 @@ type CustomerOrderStatus =
   | "Preparing"
   | "Completed"
   | "Cancelled";
-
-const MENU_IMAGES_BASE_URL: string =
-  import.meta.env.VITE_MENU_IMAGES_BASE_URL ?? "";
-
-const getMenuItemImageUrl = (uuid: string): string => {
-  return `${MENU_IMAGES_BASE_URL}/${uuid}.png`;
-};
 
 const OrderCard = ({ order }: OrderCardProps) => {
   const tableNumber =
@@ -144,8 +138,9 @@ const OrderCard = ({ order }: OrderCardProps) => {
                   "
                 >
                   <img
-                    src={getMenuItemImageUrl(item.uuid)}
+                    src={menuImageUrl(item)}
                     alt={item.name}
+                    onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
                     className="h-full w-full object-contain p-1"
                     draggable={false}
                   />

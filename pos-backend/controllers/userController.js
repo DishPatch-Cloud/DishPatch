@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const getJwtSecret = require("../config/jwtSecret");
 const getCookieOptions = require("../utils/cookieOptions");
+const { validAccountId } = require("../models/account");
 const {
   createUser,
   getUserByEmail,
@@ -13,7 +14,7 @@ const {
 // 🔹 Register new user
 const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, accountId } = req.body;
 
     if (!name || !email || !password) {
       return next(createHttpError(400, "All fields are required!"));
@@ -23,8 +24,11 @@ const register = async (req, res, next) => {
     if (isUserPresent) {
       return next(createHttpError(400, "User already exists!"));
     }
+    if (typeof accountId === "string" && accountId.trim() && !validAccountId(accountId.trim())) {
+      return next(createHttpError(400, "Account ID must look like acct_ followed by letters, numbers, or hyphens."));
+    }
 
-    const newUser = await createUser({ name, email, password });
+    const newUser = await createUser({ name, email, password, accountId });
 
     res.status(201).json({
       success: true,

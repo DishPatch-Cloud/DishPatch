@@ -12,6 +12,7 @@ import {
   Auth,
   Dashboard,
   Menu,
+  MenuEditor,
   Orders,
   Profile,
   Tables,
@@ -70,6 +71,15 @@ const Layout = () => {
           element={
             <ProtectedRoutes>
               <Menu />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/menu/edit"
+          element={
+            <ProtectedRoutes>
+              <MenuEditor />
             </ProtectedRoutes>
           }
         />

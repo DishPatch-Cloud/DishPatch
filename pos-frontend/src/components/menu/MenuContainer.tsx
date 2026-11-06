@@ -10,6 +10,7 @@ import { addItems, removeItem } from "../../redux/slices/cartSlice";
 import type { AppDispatch, RootState } from "../../redux/store";
 import { AUDFormatter } from "../../utils/currency";
 import { getMenus } from "../../https";
+import { menuImageUrl } from "../../menuImage";
 import useDragScroll from "../../hooks/useDragScroll";
 import useVerticalDragScroll from "../../hooks/useVerticalDragScroll";
 
@@ -17,6 +18,7 @@ interface MenuItem {
   uuid: string;
   name: string;
   price: number;
+  imageKey?: string;
 }
 
 interface MenuCategory {
@@ -36,15 +38,9 @@ interface MenusResponseData {
   data?: MenuCategory[];
 }
 
-const MENU_IMAGES_BASE_URL: string =
-  import.meta.env.VITE_MENU_IMAGES_BASE_URL ?? "";
-
-const getMenuItemImageUrl = (uuid: string): string => {
-  return `${MENU_IMAGES_BASE_URL}/${uuid}.png`;
-};
-
 const MenuContainer = () => {
   const [menus, setMenus] = useState<MenuCategory[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const [selected, setSelected] = useState<MenuCategory | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
@@ -86,6 +82,8 @@ const MenuContainer = () => {
         }
       } catch (error: unknown) {
         console.error("Error loading menus:", error);
+      } finally {
+        setLoaded(true);
       }
     };
 
@@ -134,6 +132,7 @@ const MenuContainer = () => {
         uuid: item.uuid,
         name: item.name,
         pricePerQuantity: item.price,
+        imageKey: item.imageKey,
       })
     );
   };
@@ -146,10 +145,18 @@ const MenuContainer = () => {
     );
   };
 
-  if (menus.length === 0) {
+  if (!loaded) {
     return (
       <p className="mt-10 text-center text-sm text-text-secondary">
         Loading menus...
+      </p >
+    );
+  }
+
+  if (menus.length === 0) {
+    return (
+      <p className="mt-10 text-center text-sm text-text-secondary">
+        This account has no dishes yet. Use Edit menu to add one.
       </p >
     );
   }
@@ -271,8 +278,9 @@ const MenuContainer = () => {
 
                 <div className="my-4 flex h-28 w-full items-center justify-center overflow-hidden rounded-xl bg-background">
                   <img
-                    src={getMenuItemImageUrl(item.uuid)}
+                    src={menuImageUrl(item)}
                     alt={item.name}
+                    onError={(event) => { event.currentTarget.style.visibility = "hidden"; }}
                     className="h-full w-full object-contain p-2"
                     draggable={false}
                   />

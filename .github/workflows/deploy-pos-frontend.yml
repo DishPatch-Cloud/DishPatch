@@ -5,8 +5,9 @@ name: Deploy POS Frontend
 
 on:
   push:
-    branches: 
-      - main 
+    branches:
+      - main
+      - 93-pos-account-menu
     paths:
       - 'pos-frontend/**'
       - 'infrastructure/infrastructure-pos-frontend.yml'
