@@ -13,9 +13,9 @@ import { setSessionTokens } from "../https/axiosWrapper";
 import { setUser } from "../redux/slices/userSlice";
 
 const SOCIAL = [
-  { label: "Sign in with Google", connection: "google-oauth2", icon: <GoogleIcon /> },
-  { label: "Sign in with GitHub", connection: "github", icon: <GitHubIcon /> },
-  { label: "Sign in with Microsoft", connection: "windowslive", icon: <MicrosoftIcon /> },
+  { label: "Sign in with Google", connection: "google-oauth2", chooseAccount: true, icon: <GoogleIcon /> },
+  { label: "Sign in with GitHub", connection: "github", chooseAccount: false, icon: <GitHubIcon /> },
+  { label: "Sign in with Microsoft", connection: "windowslive", chooseAccount: true, icon: <MicrosoftIcon /> },
 ] as const;
 
 const inputClass = `
@@ -39,13 +39,14 @@ const Auth = () => {
     document.title = signUp ? "POS | Sign up" : "POS | Sign in";
   }, [signUp]);
 
-  function socialSignIn(connection: string) {
+  function socialSignIn(connection: string, chooseAccount: boolean) {
     void loginWithRedirect({
       authorizationParams: {
         connection,
         audience,
         scope: "openid profile email",
         redirect_uri: window.location.origin,
+        ...(chooseAccount ? { prompt: "select_account" } : {}),
       },
     });
   }
@@ -98,7 +99,7 @@ const Auth = () => {
                 <button
                   key={item.connection}
                   type="button"
-                  onClick={() => socialSignIn(item.connection)}
+                  onClick={() => socialSignIn(item.connection, item.chooseAccount)}
                   className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-text-primary transition hover:border-border-strong hover:bg-secondary-light"
                 >
                   {item.icon}
