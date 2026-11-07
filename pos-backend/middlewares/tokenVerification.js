@@ -31,6 +31,7 @@ const isVerifiedUser = async (req, res, next) => {
     try {
       identity = await verifyAuth0Session(accessToken, typeof idToken === "string" ? idToken : "", auth0);
     } catch (error) {
+      console.error("Auth0 token rejected:", error instanceof Error ? error.message : error);
       return next(createHttpError(401, "Invalid Token!"));
     }
 
@@ -50,6 +51,7 @@ const isVerifiedUser = async (req, res, next) => {
     req.user = withoutSecret(user);
     next();
   } catch (error) {
+    console.error("Auth0 session failed:", error instanceof Error ? error.message : error);
     return next(createHttpError(401, "Invalid Token!"));
   }
 };
