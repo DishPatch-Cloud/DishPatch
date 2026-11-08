@@ -17,12 +17,19 @@ export interface Item {
   quantity?: number;
 }
 
+export interface OrderedBy {
+  userId: string;
+  name?: string;
+  email?: string;
+}
+
 export interface Order {
   orderId: string;      // full UUID
   displayId: string;    // short 4-digit code
   orderStatus: "Preparing" | "Ready" | "Served" | "Paid" | "Cancelled" | string;
   orderDate: string;
   customerDetails: CustomerDetails;
+  orderedBy?: OrderedBy;
   bills?: BillDetails;
   items?: Item[];
   table?: { tableNo: string } | string;

@@ -10,7 +10,6 @@ import {
 import { MdChevronRight } from "react-icons/md";
 
 import BottomNav from "../components/shared/BottomNav";
-import StaffRoles from "../components/profile/StaffRoles";
 import type { RootState } from "../redux/store";
 import { ROLE_LABELS, effectiveRole } from "../utils/roles";
 
@@ -139,11 +138,6 @@ const Profile = () => {
               </div>
             </div>
           </section>
-
-          {/* Staff access (owner only) */}
-          {effectiveRole(userData.role) === "owner" && (
-            <StaffRoles currentUserId={userData.userId} />
-          )}
 
           {/* Quick actions */}
           <section className="mt-6">

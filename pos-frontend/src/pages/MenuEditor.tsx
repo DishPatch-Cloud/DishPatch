@@ -59,7 +59,7 @@ const MenuEditor = () => {
           </button>
           <h1 className="mt-3 text-2xl font-bold text-text-primary">Edit menu</h1>
           <p className="mt-2 text-sm leading-6 text-text-secondary">
-            Add a dish to this location's menu. Every staff member sees the same menu.
+            Add a dish to this location's menu. Everyone here sees the same menu.
             A new category is created when the category name is new.
           </p>
           <form

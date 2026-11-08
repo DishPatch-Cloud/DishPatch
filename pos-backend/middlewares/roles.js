@@ -1,10 +1,14 @@
 const createHttpError = require("http-errors");
 
-const ROLES = ["owner", "manager", "staff"];
+const ROLES = ["admin", "staff", "customer"];
 
-// Users created before roles existed had full access. They keep it until an owner sets a role.
+// Older stacks stored owner, manager and staff. Owner and manager become admin.
+// A profile with no role was created before roles existed and keeps full access.
 function roleOf(user) {
-  return ROLES.includes(user?.role) ? user.role : "owner";
+  const role = user?.role;
+  if (role === "admin" || role === "staff" || role === "customer") return role;
+  if (role === "owner" || role === "manager" || !role) return "admin";
+  return "customer";
 }
 
 function requireRole(...allowed) {

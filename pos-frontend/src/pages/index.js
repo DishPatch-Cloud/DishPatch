@@ -6,3 +6,4 @@ export { default as Menu } from './Menu.tsx'
 export { default as Dashboard } from "./Dashboard.jsx"
 export { default as Profile } from "./Profile.tsx"
 export { default as MenuEditor } from "./MenuEditor.tsx"
+export { default as Users } from "./Users.tsx"

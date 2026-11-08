@@ -6,6 +6,7 @@ import type { Order } from "../../types/order";
 
 interface OrderCardProps {
   order: Order;
+  showOrderedBy?: boolean;
 }
 
 type CustomerOrderStatus =
@@ -20,7 +21,7 @@ const getMenuItemImageUrl = (uuid: string): string => {
   return `${MENU_IMAGES_BASE_URL}/${uuid}.png`;
 };
 
-const OrderCard = ({ order }: OrderCardProps) => {
+const OrderCard = ({ order, showOrderedBy = false }: OrderCardProps) => {
   const tableNumber =
     typeof order.table === "string"
       ? order.table
@@ -87,6 +88,13 @@ const OrderCard = ({ order }: OrderCardProps) => {
           <p className="mt-1 text-xs text-text-secondary">
             Dine in · Table {tableNumber}
           </p >
+          {showOrderedBy && (
+            <p className="mt-1 truncate text-xs font-medium text-text-primary">
+              {order.orderedBy?.name || order.orderedBy?.email
+                ? `Ordered by ${order.orderedBy.name || order.orderedBy.email}`
+                : "Ordered before accounts were recorded"}
+            </p>
+          )}
         </div>
 
         <span

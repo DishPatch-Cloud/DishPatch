@@ -257,7 +257,7 @@ the email and name. The API checks the token signature against the tenant JWKS, 
 the issuer `https://dish-patch.au.auth0.com/`, the audience `https://pos.dish-patch`, and the
 POS application client id.
 
-The first accepted sign-in on a stack becomes `owner`. Later sign-ins start as `staff`. Email
+The first accepted sign-in on a stack becomes `admin`. Later sign-ins start as `customer`. Email
 verification is not required. If a verified email already has a POS profile from before Auth0,
 that profile keeps its `userId`, role and data, and is linked to the Auth0 subject. An
 unverified sign-in opens its own profile and does not take over an existing one. A missing or
@@ -281,16 +281,16 @@ local run, but not in the deployed function.
 | `GET /` | | | `200 {"message": "Hello from POS Server!"}` | |
 | `GET /api/user` | ✓ | | `200`, the logged-in user, without a password | `404` |
 | `POST /api/order` | ✓ | see below | `201`, the order | |
-| `GET /api/order` | ✓ | | `200`, every order, plus `tableNo` | |
-| `GET /api/order/:id` | ✓ | | `200` | `404 "Order not found!"` |
-| `PUT /api/order/:id` | ✓ | `orderStatus` | `200`, the updated row | see [known issues](#known-issues) |
+| `GET /api/order` | ✓ | | `200`, orders this role may see, plus `tableNo` | |
+| `GET /api/order/:id` | ✓ | | `200` | `404 "Order not found!"` when missing or hidden from this role |
+| `PUT /api/order/:id` | ✓ | `orderStatus` | `200`, the updated row | `404` when hidden from this role; see [known issues](#known-issues) |
 | `POST /api/table` | ✓ | `tableNo`, `seats` | `201` | `400` no `tableNo`, or table exists |
 | `GET /api/table` | ✓ | | `200` | |
 | `PUT /api/table/:id` | ✓ | `status`, `seats`, `customerName`, `customerPhone`, `guests` — all optional | `200` | see [known issues](#known-issues) |
 | `GET /api/menu` | ✓ | | `200`, menus with their items | |
-| `POST /api/menu` | ✓ owner or manager | `menuName` (category, 1–40 chars), `name` (dish, 1–80 chars), `price` (0–10000) | `201`, the new dish in `data` | `400` invalid field; `403` for staff |
-| `GET /api/user/staff` | ✓ owner | | `200`, every user in this stack with `role` | `403` |
-| `PUT /api/user/staff/:userId/role` | ✓ owner | `role`: `owner`, `manager` or `staff` | `200` | `400` invalid role or removing your own owner role; `404`; `403` |
+| `POST /api/menu` | ✓ admin | `menuName` (category, 1–40 chars), `name` (dish, 1–80 chars), `price` (0–10000) | `201`, the new dish in `data` | `400` invalid field; `403` for staff or customer |
+| `GET /api/user/staff` | ✓ admin or staff | | `200`, every user in this stack with `role` | `403` for a customer |
+| `PUT /api/user/staff/:userId/role` | ✓ admin | `role`: `admin`, `staff` or `customer` | `200` | `400` invalid role or removing your own admin role; `404`; `403` |
 | `POST /api/payment` | ✓ | `orderIds[]`, `transactionType`, `amount` | **never responds** | `400` invalid input |
 
 ### Creating an order
@@ -305,9 +305,14 @@ local run, but not in the deployed function.
 }
 ```
 
-Nothing in the body is validated. The server adds `orderId`, a four-digit `displayId` and
-`orderDate`; `orderStatus` defaults to `"Preparing"`; a string `table` is stored as
-`{"tableNo": "T6"}`.
+Nothing in the body is validated. The server adds `orderId`, a four-digit `displayId`,
+`orderDate`, and `orderedBy` from the signed-in account (`userId`, `name`, `email`). An
+`orderedBy` field in the request is ignored. `orderStatus` defaults to `"Preparing"`; a string
+`table` is stored as `{"tableNo": "T6"}`.
+
+`admin` and `staff` receive every order. A `customer` receives only orders whose `orderedBy.userId`
+is their own, including on `GET /api/order/:id` and `PUT /api/order/:id`. Orders placed before
+`orderedBy` was stored stay visible to admin and staff, and hidden from customers.
 
 **`table` decides whether a robot can deliver the order.** Dispatch uses the table number
 directly as a drop-point id, and the map has `T1`–`T18` and `R1`–`R7`. An order for any other
@@ -339,15 +344,15 @@ nginx terminates TLS and passes everything through; it adds no access control.
 
 ### POS backend: Auth0, with roles inside the stack
 
-Every POS route requires an Auth0 access token for the POS application. Menu editing is limited
-to `owner` and `manager`, and staff management to `owner`. Orders and tables have no role check
-yet: any signed-in user can read and change them.
+Every POS route requires an Auth0 access token for the POS application. Menu editing and
+changing permissions are limited to `admin`. `staff` and `admin` can read the user list and
+every order. A `customer` can place an order and can read only the orders they placed.
 
 Roles belong to one stack, which is one location. The first Auth0 user to open the POS becomes
-`owner`; later users start as `staff`. Users created before roles existed are treated as `owner`
-until an owner sets their role. Anyone who can sign up in the POS Auth0 application can join a
-stack as `staff` on their first visit. Turn off signups in that Auth0 application to make it
-invite-only.
+`admin`; later users start as `customer`. An existing `owner` or `manager`, and any profile
+with no role, is treated as `admin`. An existing `staff` stays `staff`. Anyone who can sign up
+in the POS Auth0 application joins as `customer` until an admin changes that. Turn off signups
+in that Auth0 application to make it invite-only.
 
 ---
 

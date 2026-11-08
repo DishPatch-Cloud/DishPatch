@@ -5,6 +5,6 @@ const { requireRole } = require("../middlewares/roles");
 const router = express.Router();
 
 router.get("/", isVerifiedUser, getMenus);
-router.post("/", isVerifiedUser, requireRole("owner", "manager"), addMenu);
+router.post("/", isVerifiedUser, requireRole("admin"), addMenu);
 
 module.exports = router;

@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.route("/").get(isVerifiedUser, getUserData);
 
-// Staff roles (owner only)
-router.route("/staff").get(isVerifiedUser, requireRole("owner"), listStaff);
-router.route("/staff/:userId/role").put(isVerifiedUser, requireRole("owner"), changeRole);
+// User list is visible to staff and admin. Only an admin can change a permission.
+router.route("/staff").get(isVerifiedUser, requireRole("admin", "staff"), listStaff);
+router.route("/staff/:userId/role").put(isVerifiedUser, requireRole("admin"), changeRole);
 
 module.exports = router;

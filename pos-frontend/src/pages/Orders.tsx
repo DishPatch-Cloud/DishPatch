@@ -6,12 +6,22 @@ import {
 import { enqueueSnackbar } from "notistack";
 import { FiRefreshCw } from "react-icons/fi";
 
+import { useSelector } from "react-redux";
+
 import BottomNav from "../components/shared/BottomNav";
 import OrderCard from "../components/orders/OrderCard";
-import { getOrders } from "../https";
+import { getOrders, getStaff } from "../https";
 import useVerticalDragScroll from "../hooks/useVerticalDragScroll";
+import type { RootState } from "../redux/store";
+import { canViewRestaurant } from "../utils/roles";
 
 import type { Order } from "../types/order";
+
+interface LocationUser {
+  userId: string;
+  name?: string;
+  email?: string;
+}
 
 type OrderFilter =
   | "all"
@@ -20,8 +30,11 @@ type OrderFilter =
   | "Cancelled";
 
 const Orders = () => {
+  const role = useSelector((state: RootState) => state.user.role);
+  const restaurantView = canViewRestaurant(role);
   const [status, setStatus] =
     useState<OrderFilter>("all");
+  const [person, setPerson] = useState("all");
 
   const dragScrollRef = useVerticalDragScroll();
 
@@ -44,6 +57,12 @@ const Orders = () => {
     refetchInterval: false,
   });
 
+  const { data: usersData } = useQuery({
+    queryKey: ["users"],
+    queryFn: getStaff,
+    enabled: restaurantView,
+  });
+
   useEffect(() => {
     if (!isError) return;
 
@@ -54,6 +73,8 @@ const Orders = () => {
 
   const orders: Order[] =
     resData?.data?.data ?? [];
+
+  const people: LocationUser[] = usersData?.data?.data ?? [];
 
   const statuses: OrderFilter[] = [
     "all",
@@ -69,12 +90,18 @@ const Orders = () => {
           status === "all" ||
           order.orderStatus === status
       )
+      .filter(
+        (order) =>
+          !restaurantView ||
+          person === "all" ||
+          order.orderedBy?.userId === person
+      )
       .sort(
         (a, b) =>
           new Date(b.orderDate).getTime() -
           new Date(a.orderDate).getTime()
       );
-  }, [orders, status]);
+  }, [orders, status, restaurantView, person]);
 
   const handleRefresh = async (): Promise<void> => {
     const result = await refetch();
@@ -107,9 +134,27 @@ const Orders = () => {
               </h1>
 
               <p className="mt-1 text-sm text-text-secondary">
-                View the progress and details of your
-                orders.
+                {restaurantView
+                  ? "Restaurant orders. Filter to one person's history."
+                  : "View the progress and details of your orders."}
               </p>
+              {restaurantView && (
+                <label className="mt-4 flex items-center gap-3">
+                  <span className="text-sm font-medium text-text-secondary">Person</span>
+                  <select
+                    value={person}
+                    onChange={(event) => setPerson(event.target.value)}
+                    className="rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text-primary outline-none focus:border-primary"
+                  >
+                    <option value="all">Everyone</option>
+                    {people.map((user) => (
+                      <option key={user.userId} value={user.userId}>
+                        {user.name || user.email || "Unnamed user"}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </div>
 
             <div className="flex items-center gap-3">
@@ -211,6 +256,7 @@ const Orders = () => {
                 <OrderCard
                   key={order.orderId}
                   order={order}
+                  showOrderedBy={restaurantView}
                 />
               ))}
             </div>
@@ -221,9 +267,11 @@ const Orders = () => {
               </p>
 
               <p className="mt-1 text-xs text-text-secondary">
-                {status === "all"
-                  ? "There are no orders to display."
-                  : `There are no ${status.toLowerCase()} orders to display.`}
+                {person !== "all"
+                  ? "This person has no matching orders."
+                  : status === "all"
+                    ? "There are no orders to display."
+                    : `There are no ${status.toLowerCase()} orders to display.`}
               </p>
             </div>
           )}

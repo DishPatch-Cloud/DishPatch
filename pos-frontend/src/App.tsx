@@ -16,6 +16,7 @@ import {
   Orders,
   Profile,
   Tables,
+  Users,
 } from "./pages";
 
 import Header from "./components/shared/Header";
@@ -107,6 +108,15 @@ const Layout = () => {
           element={
             <ProtectedRoutes>
               <Profile />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoutes>
+              <Users />
             </ProtectedRoutes>
           }
         />

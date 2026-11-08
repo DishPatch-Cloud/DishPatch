@@ -26,7 +26,7 @@ async function createUser(user) {
     TableName: TABLE_NAME,
     Item: {
       userId,
-      role: user.role || "staff",
+      role: user.role || "customer",
       name: user.name,
       email: user.email,
       password: hashedPassword,
@@ -39,7 +39,7 @@ async function createUser(user) {
   return { userId, ...user, password: undefined }; // don’t return password
 }
 
-// True when the table already holds a user. The first user of a stack becomes its owner.
+// True when the table already holds a user. The first user of a stack becomes its admin.
 async function hasAnyUser() {
   const result = await docClient.send(new ScanCommand({ TableName: TABLE_NAME, Limit: 1 }));
   return (result.Items?.length ?? 0) > 0;
@@ -57,7 +57,7 @@ async function listUsers() {
     users.push(...(result.Items ?? []));
     startKey = result.LastEvaluatedKey;
   } while (startKey);
-  return users.map(({ userId, name, email, role }) => ({ userId, name, email, role: role || "owner" }));
+  return users.map(({ userId, name, email, role }) => ({ userId, name, email, role }));
 }
 
 // Returns null when the user does not exist.
@@ -90,8 +90,9 @@ async function getUserByAuth0Subject(subject) {
   return result.Items?.[0];
 }
 
-// Open a POS profile for an Auth0 user. The first profile in this stack is the owner.
-// An existing email keeps its role and is linked to this Auth0 subject.
+// Open a POS profile for an Auth0 user. The first profile in this stack is the admin.
+// Later sign-ins start as customers. An existing email keeps its role and is linked
+// to this Auth0 subject.
 async function ensureAuth0User({ subject, email, name, emailVerified }) {
   const existingBySubject = await getUserByAuth0Subject(subject);
   if (existingBySubject) return existingBySubject;
@@ -123,7 +124,7 @@ async function ensureAuth0User({ subject, email, name, emailVerified }) {
     return existingByEmail;
   }
 
-  const role = (await hasAnyUser()) ? "staff" : "owner";
+  const role = (await hasAnyUser()) ? "customer" : "admin";
   const item = {
     userId: subject,
     auth0Subject: subject,

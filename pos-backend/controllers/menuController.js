@@ -14,7 +14,7 @@ function readDish(body) {
   return { menuName, name, price };
 }
 
-// ➤ Add a dish to a category in the shared menu (owner or manager)
+// ➤ Add a dish to a category in the shared menu (admin)
 const addMenu = async (req, res, next) => {
   try {
     const dish = readDish(req.body);

@@ -20,12 +20,21 @@ async function createOrder(order) {
     ? { tableNo: order.table }
     : order.table;
 
+  const orderedBy = order.orderedBy
+    ? {
+        userId: order.orderedBy.userId,
+        name: order.orderedBy.name || "",
+        email: order.orderedBy.email || "",
+      }
+    : undefined;
+
   const params = new PutCommand({
     TableName: TABLE_NAME,
     Item: {
       orderId,                                  // backend PK
       displayId,                                // short ID for UI
       customerDetails: order.customerDetails,
+      orderedBy,
       orderStatus: order.orderStatus || "Preparing",
       orderDate: new Date().toISOString(),
       bills: order.bills,
@@ -38,7 +47,7 @@ async function createOrder(order) {
 
   await docClient.send(params);
 
-  return { orderId, displayId, ...order, table };
+  return { orderId, displayId, ...order, orderedBy, table };
 }
 
 // ✅ List all orders (full table scan)
