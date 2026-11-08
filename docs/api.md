@@ -290,6 +290,7 @@ local run, but not in the deployed function.
 | `GET /api/menu` | ✓ | | `200`, menus with their items | |
 | `POST /api/menu` | ✓ admin | `menuName` (category, 1–40 chars), `name` (dish, 1–80 chars), `price` (0–10000) | `201`, the new dish in `data` | `400` invalid field; `403` for staff or customer |
 | `GET /api/user/staff` | ✓ admin or staff | | `200`, every user in this stack with `role` | `403` for a customer |
+| `POST /api/user/claim-admin` | ✓ | | `200`, this account is now `admin` | `409` when any account is already admin (`owner`, `manager`, a blank role, or `admin`) |
 | `PUT /api/user/staff/:userId/role` | ✓ admin | `role`: `admin`, `staff` or `customer` | `200` | `400` invalid role or removing your own admin role; `404`; `403` |
 | `POST /api/payment` | ✓ | `orderIds[]`, `transactionType`, `amount` | **never responds** | `400` invalid input |
 

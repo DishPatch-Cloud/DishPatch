@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { enqueueSnackbar } from "notistack";
 
 import BottomNav from "../components/shared/BottomNav";
-import { getStaff, setStaffRole } from "../https";
+import { claimAdmin, getStaff, setStaffRole } from "../https";
+import { setUser } from "../redux/slices/userSlice";
 import type { RootState } from "../redux/store";
 import { canEditUsers, canViewRestaurant, POS_ROLES, ROLE_LABELS, type PosRole } from "../utils/roles";
 
@@ -18,29 +19,51 @@ interface LocationUser {
 }
 
 const Users = () => {
+  const dispatch = useDispatch();
   const queryClient = useQueryClient();
   const current = useSelector((state: RootState) => state.user);
   const allowed = canViewRestaurant(current.role);
   const editable = canEditUsers(current.role);
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState(false);
 
   useEffect(() => {
     document.title = "POS | Users";
   }, []);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["users"],
     queryFn: getStaff,
     enabled: allowed,
   });
-
-  useEffect(() => {
-    if (isError) enqueueSnackbar("Could not load users.", { variant: "error" });
-  }, [isError]);
+  const loadError = (error as AxiosError<{ message?: string }> | null)?.response?.data?.message;
 
   if (!allowed) return <Navigate to="/menu" replace />;
 
   const users: LocationUser[] = data?.data?.data ?? [];
+  const locationHasAdmin = users.some((member) => member.role === "admin");
+  const canClaimAdmin = !editable && !isLoading && (isError || !locationHasAdmin);
+
+  const becomeAdmin = async () => {
+    setClaiming(true);
+    try {
+      await claimAdmin();
+      dispatch(setUser({
+        userId: current.userId,
+        name: current.name,
+        email: current.email,
+        phone: current.phone,
+        role: "admin",
+      }));
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+      enqueueSnackbar("You are now the admin.", { variant: "success" });
+    } catch (claimError) {
+      const message = (claimError as AxiosError<{ message?: string }>).response?.data?.message;
+      enqueueSnackbar(message || "Could not make this account the admin.", { variant: "error" });
+    } finally {
+      setClaiming(false);
+    }
+  };
 
   const changeRole = async (member: LocationUser, role: PosRole) => {
     setSavingUserId(member.userId);
@@ -78,11 +101,35 @@ const Users = () => {
                 ? "Everyone at this location. Click a permission to change it."
                 : "Everyone at this location. An admin can change permissions."}
             </p>
+            {canClaimAdmin && (
+              <div className="mt-4 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+                <p className="text-sm text-text-secondary">
+                  No account here is an admin yet. The signed-in account can take that role once.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void becomeAdmin()}
+                  disabled={claiming}
+                  className="mt-3 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-60"
+                >
+                  {claiming ? "Please wait..." : "Make me the admin"}
+                </button>
+              </div>
+            )}
           </header>
 
           <section className="mt-6 overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
             {isLoading ? (
               <p className="px-5 py-8 text-sm text-text-secondary">Loading users...</p>
+            ) : isError ? (
+              <div className="px-5 py-8">
+                <p className="text-sm font-semibold text-text-primary">Could not load users.</p>
+                <p className="mt-1 text-sm leading-6 text-text-secondary">
+                  Staff can see this list. It failed to load, so the people at this location are still there.
+                  Refresh the page.
+                  {loadError ? ` The server said: ${loadError}` : ""}
+                </p>
+              </div>
             ) : users.length === 0 ? (
               <p className="px-5 py-8 text-sm text-text-secondary">No users yet.</p>
             ) : (

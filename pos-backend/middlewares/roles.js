@@ -11,6 +11,10 @@ function roleOf(user) {
   return "customer";
 }
 
+function stackHasAdmin(users) {
+  return users.some((user) => roleOf(user) === "admin");
+}
+
 function requireRole(...allowed) {
   return (req, res, next) => {
     if (!allowed.includes(roleOf(req.user))) {
@@ -20,4 +24,4 @@ function requireRole(...allowed) {
   };
 }
 
-module.exports = { ROLES, roleOf, requireRole };
+module.exports = { ROLES, roleOf, stackHasAdmin, requireRole };

@@ -29,3 +29,4 @@ export const addMenu = (data) => axiosWrapper.post("/api/menu", data);
 export const getStaff = () => axiosWrapper.get("/api/user/staff");
 export const setStaffRole = (userId, role) =>
   axiosWrapper.put(`/api/user/staff/${userId}/role`, { role });
+export const claimAdmin = () => axiosWrapper.post("/api/user/claim-admin");

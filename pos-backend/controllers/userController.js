@@ -1,6 +1,6 @@
 const createHttpError = require("http-errors");
 const { getUserById, listUsers, setUserRole } = require("../models/userModel");
-const { ROLES, roleOf } = require("../middlewares/roles");
+const { ROLES, roleOf, stackHasAdmin } = require("../middlewares/roles");
 
 function withoutSecret(user) {
   const { password, ...safe } = user;
@@ -65,4 +65,28 @@ const changeRole = async (req, res, next) => {
   }
 };
 
-module.exports = { getUserData, listStaff, changeRole };
+// The new admin role does not exist on older accounts. If nobody in this location
+// is an admin, the signed-in account can take that role once.
+const claimAdmin = async (req, res, next) => {
+  try {
+    const users = await listUsers();
+    if (stackHasAdmin(users)) {
+      return next(createHttpError(409, "This location already has an admin."));
+    }
+
+    const updated = await setUserRole(req.user.userId, "admin");
+    if (!updated) {
+      return next(createHttpError(404, "User not found!"));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "You are now the admin.",
+      data: { userId: updated.userId, role: "admin" },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getUserData, listStaff, changeRole, claimAdmin };
