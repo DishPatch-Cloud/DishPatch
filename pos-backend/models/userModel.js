@@ -2,7 +2,7 @@ const docClient = require("../config/database");
 const config = require("../config/config");
 const { GetCommand, PutCommand, QueryCommand, ScanCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const { v4: uuidv4 } = require("uuid");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const TABLE_NAME = config.usersTable; // ✅ use CloudFormation-injected table name
 
