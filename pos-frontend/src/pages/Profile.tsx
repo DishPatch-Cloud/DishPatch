@@ -80,7 +80,7 @@ const Profile = () => {
     userData.email?.trim() || "Guest customer";
 
   return (
-    <section className="h-[calc(100dvh-5rem)] overflow-hidden bg-background font-sans">
+    <section className="h-full overflow-hidden bg-background font-sans">
       <div className="h-[calc(100%-5rem)] overflow-y-auto px-4 py-5 scrollbar-hide sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-3xl">
           {/* Header */}

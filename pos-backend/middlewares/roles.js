@@ -2,12 +2,12 @@ const createHttpError = require("http-errors");
 
 const ROLES = ["admin", "staff", "customer"];
 
-// Older stacks stored owner, manager and staff. Owner and manager become admin.
-// A profile with no role was created before roles existed and keeps full access.
+// Older stacks stored owner and manager. Those stay admin. A profile with no role
+// is an old test record, not an admin.
 function roleOf(user) {
   const role = user?.role;
   if (role === "admin" || role === "staff" || role === "customer") return role;
-  if (role === "owner" || role === "manager" || !role) return "admin";
+  if (role === "owner" || role === "manager") return "admin";
   return "customer";
 }
 

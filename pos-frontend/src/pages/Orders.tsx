@@ -123,7 +123,7 @@ const Orders = () => {
   };
 
   return (
-    <section className="h-[calc(100dvh-5rem)] overflow-hidden bg-background font-sans">
+    <section className="h-full overflow-hidden bg-background font-sans">
       <div className="flex h-[calc(100%-5rem)] min-h-0 flex-col px-4 py-4 lg:px-6">
         {/* Header */}
         <div className="shrink-0">

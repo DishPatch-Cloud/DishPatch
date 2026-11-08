@@ -26,7 +26,7 @@ const Menu = () => {
   };
 
   return (
-    <section className="h-[calc(100dvh-5rem)] overflow-hidden bg-background font-sans">
+    <section className="h-full overflow-hidden bg-background font-sans">
       {/* Main content between header and bottom navigation */}
       <div className="flex h-[calc(100%-5rem)] min-h-0 gap-4 px-4 py-4">
         {/* Menu section */}

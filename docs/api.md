@@ -290,7 +290,7 @@ local run, but not in the deployed function.
 | `GET /api/menu` | ✓ | | `200`, menus with their items | |
 | `POST /api/menu` | ✓ admin | `menuName` (category, 1–40 chars), `name` (dish, 1–80 chars), `price` (0–10000) | `201`, the new dish in `data` | `400` invalid field; `403` for staff or customer |
 | `GET /api/user/staff` | ✓ admin or staff | | `200`, every user in this stack with `role` | `403` for a customer |
-| `POST /api/user/claim-admin` | ✓ | | `200`, this account is now `admin` | `409` when any account is already admin (`owner`, `manager`, a blank role, or `admin`) |
+| `POST /api/user/claim-admin` | ✓ | | `200`, this account is now `admin` | `409` when any account is already `admin`, `owner` or `manager` |
 | `PUT /api/user/staff/:userId/role` | ✓ admin | `role`: `admin`, `staff` or `customer` | `200` | `400` invalid role or removing your own admin role; `404`; `403` |
 | `POST /api/payment` | ✓ | `orderIds[]`, `transactionType`, `amount` | **never responds** | `400` invalid input |
 
@@ -350,8 +350,8 @@ changing permissions are limited to `admin`. `staff` and `admin` can read the us
 every order. A `customer` can place an order and can read only the orders they placed.
 
 Roles belong to one stack, which is one location. The first Auth0 user to open the POS becomes
-`admin`; later users start as `customer`. An existing `owner` or `manager`, and any profile
-with no role, is treated as `admin`. An existing `staff` stays `staff`. Anyone who can sign up
+`admin`; later users start as `customer`. An existing `owner` or `manager` is treated as
+`admin`. A profile with no role is treated as `customer`. An existing `staff` stays `staff`. Anyone who can sign up
 in the POS Auth0 application joins as `customer` until an admin changes that. Turn off signups
 in that Auth0 application to make it invite-only.
 

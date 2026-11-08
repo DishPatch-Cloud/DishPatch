@@ -45,11 +45,12 @@ const Layout = () => {
   }
 
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col">
       {!hideHeaderRoutes.includes(location.pathname) && (
         <Header />
       )}
 
+      <div className="min-h-0 flex-1 overflow-hidden">
       <Routes>
         <Route
           path="/"
@@ -135,7 +136,8 @@ const Layout = () => {
           element={<div>Not Found</div>}
         />
       </Routes>
-    </>
+      </div>
+    </div>
   );
 };
 
@@ -156,7 +158,7 @@ const ProtectedRoutes = ({
 const App = () => {
   return (
     <Router>
-      <div className="h-dvh overflow-hidden bg-background">
+      <div className="flex h-dvh flex-col overflow-hidden bg-background">
         <Layout />
       </div>
     </Router>

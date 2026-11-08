@@ -51,7 +51,7 @@ const MenuEditor = () => {
   }
 
   return (
-    <section className="h-[calc(100dvh-5rem)] overflow-hidden bg-background font-sans">
+    <section className="h-full overflow-hidden bg-background font-sans">
       <div className="h-[calc(100%-5rem)] overflow-y-auto px-4 py-5 sm:px-6">
         <div className="mx-auto w-full max-w-xl">
           <button type="button" onClick={() => navigate("/menu")} className="text-sm font-semibold text-primary">

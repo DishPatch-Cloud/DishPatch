@@ -8,11 +8,11 @@ export const ROLE_LABELS: Record<PosRole, string> = {
   customer: "Customer",
 };
 
-// Users created before these roles existed have no role, or still say owner or manager.
-// Those accounts keep admin access. The backend uses the same mapping.
+// Owner and manager are the previous elevated roles. A blank role is an old record
+// and is not an admin. The backend uses the same mapping.
 export const effectiveRole = (role?: string | null): PosRole => {
   if (role === "admin" || role === "staff" || role === "customer") return role;
-  if (role === "owner" || role === "manager" || !role) return "admin";
+  if (role === "owner" || role === "manager") return "admin";
   return "customer";
 };
 
