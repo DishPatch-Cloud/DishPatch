@@ -14,6 +14,10 @@
 
 # DishPatch
 
+<p align="center">
+  <img alt="DishPatch — Open-source Service Robots Platform" src="./img/DishPatch Banner.png" />
+</p>
+
 DishPatch is an open-source, AWS cloud-based restaurant service-robot platform that integrates ordering, dispatch/control, and robotics fleet execution.
 <p align="center">
   <strong>POS System</strong> 
