@@ -5,6 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 
 import { addItems, removeItem } from "../../redux/slices/cartSlice";
@@ -49,6 +50,7 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
   const [menus, setMenus] = useState<MenuCategory[]>([]);
   const [selected, setSelected] = useState<MenuCategory | null>(null);
   const [openDish, setOpenDish] = useState<MenuItem | null>(null);
+  const [railOpen, setRailOpen] = useState(true);
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -122,7 +124,7 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
 
   if (menus.length === 0) {
     return (
-      <p className="mt-10 text-center text-sm text-[#f6efe6]">
+      <p className="mt-10 text-center text-sm text-[#1c2430]">
         Loading menus...
       </p>
     );
@@ -141,20 +143,20 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
           layout === "rail"
             ? `flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left transition ${
                 active
-                  ? "glass-plate text-[#3a2416]"
-                  : "text-[#f6efe6] hover:bg-white/10"
+                  ? "glass-plate text-[#141a22]"
+                  : "text-white hover:bg-white/10"
               }`
             : `flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-left transition ${
                 active
-                  ? "glass-plate text-[#3a2416]"
-                  : "border border-white/20 text-[#f6efe6] hover:bg-white/10"
+                  ? "glass-plate text-[#141a22]"
+                  : "border border-white/25 text-white hover:bg-white/10"
               }`
         }
       >
         <span className={`font-display font-semibold leading-none ${layout === "rail" ? "text-xl" : "text-lg"}`}>
           {menu.menuName}
         </span>
-        <span className={`text-xs font-medium ${active ? "text-[#8a5a32]" : "text-[#f6efe6]/70"}`}>
+        <span className={`text-xs font-medium ${active ? "text-[#5c6774]" : "text-white/70"}`}>
           {count}
         </span>
       </button>
@@ -163,11 +165,28 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
 
   return (
     <div className="flex h-full min-h-0">
-      <nav className="menu-rail hidden w-56 shrink-0 flex-col gap-2 overflow-y-auto px-3 py-4 md:flex">
-        <p className="px-4 pb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#f0d7b8]">
-          Categories
-        </p>
-        {menus.map((menu) => categoryButton(menu, "rail"))}
+      <nav
+        className={`menu-rail hidden shrink-0 flex-col gap-2 overflow-hidden py-4 transition-[width] duration-300 md:flex ${
+          railOpen ? "w-56 px-3" : "w-14 px-2"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => setRailOpen((open) => !open)}
+          aria-expanded={railOpen}
+          aria-label={railOpen ? "Collapse categories" : "Expand categories"}
+          className={`flex items-center rounded-2xl py-2 text-white/80 transition hover:bg-white/10 hover:text-white ${
+            railOpen ? "justify-between px-3" : "justify-center"
+          }`}
+        >
+          {railOpen && (
+            <span className="text-[11px] font-semibold uppercase tracking-[0.24em]">
+              Categories
+            </span>
+          )}
+          {railOpen ? <IoChevronBack size={18} /> : <IoChevronForward size={18} />}
+        </button>
+        {railOpen && menus.map((menu) => categoryButton(menu, "rail"))}
       </nav>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -201,7 +220,7 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
                   onClick={() => setOpenDish(item)}
                   className="glass-plate flex min-h-[280px] flex-col overflow-hidden rounded-3xl p-3 text-left transition duration-200 hover:-translate-y-0.5"
                 >
-                  <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-[#f4e7d6]">
+                  <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-white/75">
                     {photo ? (
                       <img
                         src={photo}
@@ -211,15 +230,15 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
                       />
                     ) : null}
                     {quantity > 0 && (
-                      <span className="absolute right-2 top-2 rounded-full bg-[#6b3e22] px-2.5 py-1 text-xs font-semibold text-[#f8f1e7]">
+                      <span className="absolute right-2 top-2 rounded-full bg-[#141a22] px-2.5 py-1 text-xs font-semibold text-white">
                         {quantity}
                       </span>
                     )}
                   </div>
-                  <h3 className="mt-3 px-1 font-display text-2xl font-semibold leading-7 text-[#2c1810]">
+                  <h3 className="mt-3 px-1 font-display text-2xl font-semibold leading-7 text-[#141a22]">
                     {item.name}
                   </h3>
-                  <p className="mt-auto px-1 pt-3 font-display text-xl font-semibold text-[#6b3e22]">
+                  <p className="mt-auto px-1 pt-3 font-display text-xl font-semibold text-[#1c2430]">
                     {AUDFormatter.format(item.price)}
                   </p>
                 </button>
@@ -228,7 +247,7 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
 
             {selected?.items?.length === 0 && (
               <div className="glass-plate col-span-full flex min-h-48 items-center justify-center rounded-3xl">
-                <p className="text-sm text-[#6d5344]">
+                <p className="text-sm text-[#3d4754]">
                   No dishes in this category.
                 </p>
               </div>

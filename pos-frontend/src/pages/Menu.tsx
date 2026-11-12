@@ -33,7 +33,7 @@ const Menu = () => {
         <MenuContainer
           header={
             <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-1 pt-4 sm:px-6">
-              <h1 className="font-display text-4xl font-semibold tracking-tight text-[#f8f1e7]">
+              <h1 className="font-display text-4xl font-semibold tracking-tight text-[#141a22]">
                 Menu
               </h1>
 
@@ -41,7 +41,7 @@ const Menu = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/menu/edit")}
-                  className="glass-plate rounded-full px-4 py-2 text-sm font-semibold text-[#4a2e1c] transition hover:-translate-y-0.5"
+                  className="glass-plate rounded-full px-4 py-2 text-sm font-semibold text-[#141a22] transition hover:-translate-y-0.5"
                 >
                   Edit menu
                 </button>
@@ -54,12 +54,12 @@ const Menu = () => {
       <button
         type="button"
         onClick={openCart}
-        className="glass-plate fixed bottom-24 right-4 z-30 flex items-center gap-3 rounded-full px-4 py-3 text-sm font-semibold text-[#3a2416] transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-white/30"
+        className="glass-plate fixed bottom-24 right-4 z-30 flex items-center gap-3 rounded-full px-4 py-3 text-sm font-semibold text-[#141a22] transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-white/40"
         aria-label={`View cart, ${itemCount} items`}
       >
         <BiCart size={22} />
         View cart
-        <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-[#6b3e22] px-2 text-xs font-semibold text-[#f8f1e7]">
+        <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-[#141a22] px-2 text-xs font-semibold text-white">
           {itemCount}
         </span>
       </button>
@@ -76,7 +76,7 @@ const Menu = () => {
       <aside
         className={`
           fixed z-50 flex min-h-0 flex-col overflow-hidden
-          border border-[#eadccb] bg-[#f7f1e8]
+          border border-white/80 bg-white/90
           shadow-[0_18px_50px_rgba(28,16,10,0.28)]
           transition-transform duration-300 ease-out
           inset-x-0 bottom-20 h-[calc(100dvh-10rem)] rounded-t-3xl
@@ -86,11 +86,11 @@ const Menu = () => {
         aria-hidden={!isCartOpen}
       >
         {/* Drawer header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between bg-[#141a22] px-5 py-4 text-white">
           <div className="flex items-center gap-2">
-            <BiCart className="text-xl text-primary" />
+            <BiCart className="text-xl" />
 
-            <h2 className="text-lg font-semibold text-text-primary">
+            <h2 className="text-lg font-semibold">
               Your Cart
             </h2>
           </div>
@@ -98,11 +98,7 @@ const Menu = () => {
           <button
             type="button"
             onClick={closeCart}
-            className="
-              rounded-xl p-2 text-text-secondary
-              transition hover:bg-secondary-light
-              hover:text-text-primary
-            "
+            className="rounded-xl p-2 text-white/80 transition hover:bg-white/10 hover:text-white"
             aria-label="Close cart"
           >
             <IoClose size={24} />
