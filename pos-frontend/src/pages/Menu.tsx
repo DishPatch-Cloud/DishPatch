@@ -15,6 +15,8 @@ import { canEditMenu } from "../utils/roles";
 const Menu = () => {
   const navigate = useNavigate();
   const role = useSelector((state: RootState) => state.user.role);
+  const cart = useSelector((state: RootState) => state.cart);
+  const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const openCart = () => {
@@ -26,98 +28,60 @@ const Menu = () => {
   };
 
   return (
-    <section className="h-full overflow-hidden bg-background font-sans">
-      {/* Main content between header and bottom navigation */}
-      <div className="flex h-[calc(100%-5rem)] min-h-0 gap-4 px-4 py-4">
-        {/* Menu section */}
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="flex shrink-0 items-center justify-between gap-3 px-0 pb-4 sm:px-2">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-              Menu
-            </h1>
+    <section className="menu-room h-full overflow-hidden font-sans">
+      <div className="h-[calc(100%-5rem)] min-h-0">
+        <MenuContainer
+          header={
+            <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-1 pt-4 sm:px-6">
+              <h1 className="font-display text-4xl font-semibold tracking-tight text-[#f8f1e7]">
+                Menu
+              </h1>
 
-            {canEditMenu(role) && (
-              <button
-                type="button"
-                onClick={() => navigate("/menu/edit")}
-                className="rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-primary transition hover:border-primary/40 hover:bg-primary-light/20"
-              >
-                Edit menu
-              </button>
-            )}
-          </div>
-
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <MenuContainer />
-          </div>
-        </main>
-
-        {/* Desktop cart sidebar */}
-        <aside
-          className="
-            hidden h-full min-h-0 w-[360px] shrink-0
-            flex-col overflow-hidden rounded-2xl
-            border border-border bg-surface shadow-card
-            lg:flex xl:w-[400px]
-          "
-        >
-          <div className="shrink-0">
-            <TableInfo />
-          </div>
-
-          {/* CartInfo owns the scrolling */}
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <hr className="border-border" />
-            <CartInfo />
-          </div>
-
-          <div className="shrink-0 border-t border-border bg-surface">
-            <OrderSummary />
-          </div>
-        </aside>
+              {canEditMenu(role) && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/menu/edit")}
+                  className="glass-plate rounded-full px-4 py-2 text-sm font-semibold text-[#4a2e1c] transition hover:-translate-y-0.5"
+                >
+                  Edit menu
+                </button>
+              )}
+            </div>
+          }
+        />
       </div>
 
-      {/* Mobile cart button */}
       <button
         type="button"
         onClick={openCart}
-        className="
-          fixed bottom-24 right-4 z-30
-          flex items-center gap-2 rounded-full
-          bg-primary px-5 py-3
-          text-sm font-semibold text-white
-          shadow-lg transition
-          hover:bg-primary-hover
-          focus:outline-none focus:ring-4 focus:ring-primary/20
-          lg:hidden
-        "
-        aria-label="Open cart"
+        className="glass-plate fixed bottom-24 right-4 z-30 flex items-center gap-3 rounded-full px-4 py-3 text-sm font-semibold text-[#3a2416] transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-white/30"
+        aria-label={`View cart, ${itemCount} items`}
       >
-        <BiCart size={21} />
-        View Cart
+        <BiCart size={22} />
+        View cart
+        <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-[#6b3e22] px-2 text-xs font-semibold text-[#f8f1e7]">
+          {itemCount}
+        </span>
       </button>
 
-      {/* Mobile backdrop */}
       {isCartOpen && (
         <button
           type="button"
           onClick={closeCart}
-          className="fixed inset-x-0 bottom-20 top-20 z-40 bg-slate-950/40 lg:hidden"
+          className="fixed inset-x-0 bottom-20 top-20 z-40 bg-[#1c100a]/45"
           aria-label="Close cart"
         />
       )}
 
-      {/* Mobile cart drawer */}
       <aside
         className={`
-          fixed inset-x-0 bottom-20 z-50
-          flex h-[calc(100dvh-10rem)] min-h-0 flex-col
-          overflow-hidden rounded-t-3xl
-          border-t border-border bg-surface
-          shadow-[0_-12px_40px_rgba(15,23,42,0.18)]
+          fixed z-50 flex min-h-0 flex-col overflow-hidden
+          border border-[#eadccb] bg-[#f7f1e8]
+          shadow-[0_18px_50px_rgba(28,16,10,0.28)]
           transition-transform duration-300 ease-out
-          lg:hidden
-          ${isCartOpen ? "translate-y-0" : "translate-y-full"}
+          inset-x-0 bottom-20 h-[calc(100dvh-10rem)] rounded-t-3xl
+          lg:inset-x-auto lg:bottom-20 lg:right-0 lg:top-20 lg:h-auto lg:w-[420px] lg:rounded-l-3xl lg:rounded-tr-none
+          ${isCartOpen ? "translate-y-0 lg:translate-x-0" : "translate-y-full lg:translate-x-full lg:translate-y-0"}
         `}
         aria-hidden={!isCartOpen}
       >

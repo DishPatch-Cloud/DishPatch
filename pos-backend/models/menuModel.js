@@ -62,9 +62,27 @@ async function setDishImage(uuid, imageUrl) {
   return null;
 }
 
+async function setDishDescription(uuid, description) {
+  const data = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
+  for (const category of data.Items ?? []) {
+    const items = category.items ?? [];
+    const index = items.findIndex((item) => item.uuid === uuid);
+    if (index < 0) continue;
+    const nextItems = items.slice();
+    nextItems[index] = { ...nextItems[index], description };
+    await docClient.send(new PutCommand({
+      TableName: TABLE_NAME,
+      Item: { ...category, items: nextItems },
+    }));
+    return nextItems[index];
+  }
+  return null;
+}
+
 module.exports = {
   getAllMenuItems,
   addMenuItem,
   addDish,
   setDishImage,
+  setDishDescription,
 };

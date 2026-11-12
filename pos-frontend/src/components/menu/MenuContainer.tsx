@@ -3,6 +3,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -13,6 +14,7 @@ import { menuPhotoUrl } from "../../utils/menuPhoto";
 import { getMenus } from "../../https";
 import useDragScroll from "../../hooks/useDragScroll";
 import useVerticalDragScroll from "../../hooks/useVerticalDragScroll";
+import DishDetail from "./DishDetail";
 
 interface MenuItem {
   uuid: string;
@@ -39,9 +41,14 @@ interface MenusResponseData {
   data?: MenuCategory[];
 }
 
-const MenuContainer = () => {
+interface MenuContainerProps {
+  header?: ReactNode;
+}
+
+const MenuContainer = ({ header }: MenuContainerProps) => {
   const [menus, setMenus] = useState<MenuCategory[]>([]);
   const [selected, setSelected] = useState<MenuCategory | null>(null);
+  const [openDish, setOpenDish] = useState<MenuItem | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -51,12 +58,6 @@ const MenuContainer = () => {
 
   const categoryDragScrollRef = useDragScroll();
   const itemDragScrollRef = useVerticalDragScroll();
-
-  /*
-   * useVerticalDragScroll returns a callback ref.
-   * This additional normal ref lets us reset scrollTop when
-   * the customer changes category.
-   */
   const itemScrollElementRef = useRef<HTMLDivElement | null>(null);
 
   const setItemScrollRef = useCallback(
@@ -71,12 +72,9 @@ const MenuContainer = () => {
     const loadMenus = async (): Promise<void> => {
       try {
         const response = await getMenus();
-
         const responseData = response.data as MenusResponseData;
         const menuData = responseData.data ?? [];
-
         setMenus(menuData);
-
         if (menuData.length > 0) {
           setSelected(menuData[0]);
         }
@@ -88,27 +86,13 @@ const MenuContainer = () => {
     void loadMenus();
   }, []);
 
-  const handleSelectCategory = (
-    menu: MenuCategory
-  ): void => {
-    if (selected?.menuName === menu.menuName) {
-      return;
-    }
-
-    /*
-     * Stop any remaining vertical scrolling before changing
-     * the displayed category.
-     */
+  const handleSelectCategory = (menu: MenuCategory): void => {
+    if (selected?.menuName === menu.menuName) return;
     if (itemScrollElementRef.current) {
       itemScrollElementRef.current.scrollTop = 0;
     }
-
     setSelected(menu);
-
-    /*
-     * Reset again after React renders the new category items.
-     * This avoids retaining the previous category's position.
-     */
+    setOpenDish(null);
     requestAnimationFrame(() => {
       if (itemScrollElementRef.current) {
         itemScrollElementRef.current.scrollTop = 0;
@@ -117,16 +101,13 @@ const MenuContainer = () => {
   };
 
   const getCartQty = (item: MenuItem): number => {
-    const cartItem = cart.find(
-      (cartEntry) => cartEntry.uuid === item.uuid
-    );
-
+    const cartItem = cart.find((cartEntry) => cartEntry.uuid === item.uuid);
     return cartItem?.quantity ?? 0;
   };
 
   const handleIncrement = (item: MenuItem): void => {
     dispatch(
-        addItems({
+      addItems({
         uuid: item.uuid,
         name: item.name,
         pricePerQuantity: item.price,
@@ -136,211 +117,135 @@ const MenuContainer = () => {
   };
 
   const handleDecrement = (item: MenuItem): void => {
-    dispatch(
-      removeItem({
-        uuid: item.uuid,
-      })
-    );
+    dispatch(removeItem({ uuid: item.uuid }));
   };
 
   if (menus.length === 0) {
     return (
-      <p className="mt-10 text-center text-sm text-text-secondary">
+      <p className="mt-10 text-center text-sm text-[#f6efe6]">
         Loading menus...
-      </p >
+      </p>
     );
   }
 
+  const categoryButton = (menu: MenuCategory, layout: "rail" | "bar") => {
+    const active = selected?.menuName === menu.menuName;
+    const count = menu.items?.length ?? 0;
+    return (
+      <button
+        key={menu.menuName}
+        type="button"
+        draggable={false}
+        onClick={() => handleSelectCategory(menu)}
+        className={
+          layout === "rail"
+            ? `flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left transition ${
+                active
+                  ? "glass-plate text-[#3a2416]"
+                  : "text-[#f6efe6] hover:bg-white/10"
+              }`
+            : `flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-left transition ${
+                active
+                  ? "glass-plate text-[#3a2416]"
+                  : "border border-white/20 text-[#f6efe6] hover:bg-white/10"
+              }`
+        }
+      >
+        <span className={`font-display font-semibold leading-none ${layout === "rail" ? "text-xl" : "text-lg"}`}>
+          {menu.menuName}
+        </span>
+        <span className={`text-xs font-medium ${active ? "text-[#8a5a32]" : "text-[#f6efe6]/70"}`}>
+          {count}
+        </span>
+      </button>
+    );
+  };
+
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      {/* Fixed category section */}
-      <div className="shrink-0">
-        <div className="min-w-0 px-4 py-4 sm:px-6 lg:px-4">
+    <div className="flex h-full min-h-0">
+      <nav className="menu-rail hidden w-56 shrink-0 flex-col gap-2 overflow-y-auto px-3 py-4 md:flex">
+        <p className="px-4 pb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#f0d7b8]">
+          Categories
+        </p>
+        {menus.map((menu) => categoryButton(menu, "rail"))}
+      </nav>
+
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="menu-rail shrink-0 md:hidden">
           <div
             ref={categoryDragScrollRef}
-            style={{
-              WebkitOverflowScrolling: "touch",
-            }}
-            className="
-              flex w-full gap-3 overflow-x-auto pb-2
-              cursor-grab select-none scrollbar-hide
-              touch-pan-x overscroll-x-contain
-              active:cursor-grabbing
-            "
+            className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-hide"
           >
-            {menus.map((menu) => {
-              const active =
-                selected?.menuName === menu.menuName;
-
-              return (
-                <button
-                  key={menu.menuName}
-                  type="button"
-                  draggable={false}
-                  onClick={() => handleSelectCategory(menu)}
-                  className={`
-                    flex min-h-[90px] min-w-[170px] shrink-0
-                    flex-col items-start justify-between
-                    rounded-2xl border p-4 text-left
-                    transition duration-200
-                    ${
-                      active
-                        ? "border-primary bg-primary-light text-primary shadow-sm"
-                        : "border-border bg-surface text-text-primary hover:border-primary hover:bg-primary-light/40"
-                    }
-                  `}
-                >
-                  <h2 className="text-base font-semibold leading-5">
-                    {menu.icon && (
-                      <span className="mr-2">
-                        {menu.icon}
-                      </span>
-                    )}
-
-                    {menu.menuName}
-                  </h2>
-
-                  <p
-                    className={`mt-4 text-sm font-medium ${
-                      active
-                        ? "text-primary/80"
-                        : "text-text-secondary"
-                    }`}
-                  >
-                    {menu.items?.length ?? 0} Items
-                  </p >
-                </button>
-              );
-            })}
+            {menus.map((menu) => categoryButton(menu, "bar"))}
           </div>
         </div>
 
-        <hr className="border-border" />
-      </div>
+        {header}
 
-      {/* Independently scrollable menu items */}
-      <div
-        ref={setItemScrollRef}
-        style={{
-          WebkitOverflowScrolling: "touch",
-          touchAction: "pan-y",
-        }}
-        className="
-          min-h-0 flex-1 cursor-grab
-          overflow-y-auto overscroll-contain
-          select-none pb-24 scrollbar-hide
-          active:cursor-grabbing
-          lg:pb-6
-        "
-      >
-        {/*
-          Changing this key remounts the grid whenever a different
-          category is selected, preventing stale item content.
-        */}
         <div
-          key={selected?.menuName ?? "no-category"}
-          className="
-            grid gap-4 px-4 py-5
-            sm:grid-cols-2 sm:px-6
-            lg:grid-cols-2 lg:px-4
-            xl:grid-cols-3
-            2xl:grid-cols-4
-          "
+          ref={setItemScrollRef}
+          style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+          className="min-h-0 flex-1 cursor-grab overflow-y-auto overscroll-contain pb-28 scrollbar-hide active:cursor-grabbing"
         >
-          {selected?.items?.map((item) => {
-            const quantity = getCartQty(item);
-
-            return (
-              <article
-                key={item.uuid}
-                className="
-                  flex min-h-[260px] flex-col rounded-2xl
-                  border border-border bg-surface p-4
-                  shadow-sm transition duration-200
-                  hover:-translate-y-0.5
-                  hover:border-primary
-                  hover:shadow-card
-                "
-              >
-                <h3 className="min-h-[48px] text-base font-semibold leading-6 text-text-primary">
-                  {item.name}
-                </h3>
-                {item.description ? (
-                  <p className="line-clamp-2 text-sm leading-5 text-text-secondary">{item.description}</p>
-                ) : null}
-
-                <div className="my-4 flex h-28 w-full items-center justify-center overflow-hidden rounded-xl bg-background">
-                  {menuPhotoUrl(item) ? (
-                    <img
-                      src={menuPhotoUrl(item)}
-                      alt={item.name}
-                      className="h-full w-full object-contain p-2"
-                      draggable={false}
-                    />
-                  ) : null}
-                </div>
-
-                <div className="mt-auto flex items-center justify-between gap-3">
-                  <p className="text-lg font-bold text-text-primary">
-                    {AUDFormatter.format(item.price)}
-                  </p >
-
-                  <div
-                    data-no-drag
-                    className="flex items-center rounded-xl border border-border bg-background"
-                  >
-                    <button
-                      data-no-drag
-                      type="button"
-                      onClick={() => handleDecrement(item)}
-                      disabled={quantity === 0}
-                      className="
-                        flex h-10 w-10 items-center justify-center
-                        rounded-l-xl text-lg font-semibold
-                        text-text-secondary transition
-                        hover:bg-secondary-light
-                        hover:text-text-primary
-                        disabled:cursor-not-allowed
-                        disabled:opacity-30
-                      "
-                      aria-label={`Remove one ${item.name}`}
-                    >
-                      −
-                    </button>
-
-                    <span className="w-8 text-center text-sm font-semibold text-text-primary">
-                      {quantity}
-                    </span>
-
-                    <button
-                      data-no-drag
-                      type="button"
-                      onClick={() => handleIncrement(item)}
-                      className="
-                        flex h-10 w-10 items-center justify-center
-                        rounded-r-xl text-lg font-semibold
-                        text-primary transition
-                        hover:bg-primary-light
-                      "
-                      aria-label={`Add one ${item.name}`}
-                    >
-                      +
-                    </button>
+          <div
+            key={selected?.menuName ?? "no-category"}
+            className="grid gap-4 px-4 py-5 sm:grid-cols-2 sm:px-6 xl:grid-cols-3 2xl:grid-cols-4"
+          >
+            {selected?.items?.map((item) => {
+              const quantity = getCartQty(item);
+              const photo = menuPhotoUrl(item);
+              return (
+                <button
+                  key={item.uuid}
+                  type="button"
+                  onClick={() => setOpenDish(item)}
+                  className="glass-plate flex min-h-[280px] flex-col overflow-hidden rounded-3xl p-3 text-left transition duration-200 hover:-translate-y-0.5"
+                >
+                  <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-[#f4e7d6]">
+                    {photo ? (
+                      <img
+                        src={photo}
+                        alt=""
+                        className="h-full w-full object-contain p-3"
+                        draggable={false}
+                      />
+                    ) : null}
+                    {quantity > 0 && (
+                      <span className="absolute right-2 top-2 rounded-full bg-[#6b3e22] px-2.5 py-1 text-xs font-semibold text-[#f8f1e7]">
+                        {quantity}
+                      </span>
+                    )}
                   </div>
-                </div>
-              </article>
-            );
-          })}
+                  <h3 className="mt-3 px-1 font-display text-2xl font-semibold leading-7 text-[#2c1810]">
+                    {item.name}
+                  </h3>
+                  <p className="mt-auto px-1 pt-3 font-display text-xl font-semibold text-[#6b3e22]">
+                    {AUDFormatter.format(item.price)}
+                  </p>
+                </button>
+              );
+            })}
 
-          {selected?.items?.length === 0 && (
-            <div className="col-span-full flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-border bg-surface">
-              <p className="text-sm text-text-secondary">
-                No items available in this category.
-              </p >
-            </div>
-          )}
+            {selected?.items?.length === 0 && (
+              <div className="glass-plate col-span-full flex min-h-48 items-center justify-center rounded-3xl">
+                <p className="text-sm text-[#6d5344]">
+                  No dishes in this category.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {openDish && (
+        <DishDetail
+          dish={openDish}
+          quantity={getCartQty(openDish)}
+          onClose={() => setOpenDish(null)}
+          onIncrement={() => handleIncrement(openDish)}
+          onDecrement={() => handleDecrement(openDish)}
+        />
+      )}
     </div>
   );
 };
