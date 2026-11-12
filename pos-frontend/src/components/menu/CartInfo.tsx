@@ -9,6 +9,7 @@ import {
 } from "../../redux/slices/cartSlice";
 import type { AppDispatch, RootState } from "../../redux/store";
 import { AUDFormatter } from "../../utils/currency";
+import { menuPhotoUrl } from "../../utils/menuPhoto";
 
 interface CartItem {
   uuid: string;
@@ -16,14 +17,8 @@ interface CartItem {
   quantity: number;
   price: number;
   pricePerQuantity?: number;
+  imageUrl?: string;
 }
-
-const MENU_IMAGES_BASE_URL: string =
-  import.meta.env.VITE_MENU_IMAGES_BASE_URL ?? "";
-
-const getMenuItemImageUrl = (uuid: string): string => {
-  return `${MENU_IMAGES_BASE_URL}/${uuid}.png`;
-};
 
 const CartInfo = () => {
   const cartData = useSelector(
@@ -167,12 +162,14 @@ const CartInfo = () => {
                     border border-border bg-surface
                   "
                 >
-                  <img
-                    src={getMenuItemImageUrl(item.uuid)}
-                    alt={item.name}
-                    className="h-full w-full object-contain p-1.5"
-                    draggable={false}
-                  />
+                  {menuPhotoUrl(item) ? (
+                    <img
+                      src={menuPhotoUrl(item)}
+                      alt={item.name}
+                      className="h-full w-full object-contain p-1.5"
+                      draggable={false}
+                    />
+                  ) : null}
                 </div>
 
                 {/* Name and quantity */}

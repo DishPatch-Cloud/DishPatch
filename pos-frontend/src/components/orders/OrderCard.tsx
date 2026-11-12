@@ -2,6 +2,7 @@ import { FaCheckDouble, FaCircle } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 
 import { formatDateAndTime } from "../../utils";
+import { menuPhotoUrl } from "../../utils/menuPhoto";
 import type { Order } from "../../types/order";
 
 interface OrderCardProps {
@@ -13,13 +14,6 @@ type CustomerOrderStatus =
   | "Preparing"
   | "Completed"
   | "Cancelled";
-
-const MENU_IMAGES_BASE_URL: string =
-  import.meta.env.VITE_MENU_IMAGES_BASE_URL ?? "";
-
-const getMenuItemImageUrl = (uuid: string): string => {
-  return `${MENU_IMAGES_BASE_URL}/${uuid}.png`;
-};
 
 const OrderCard = ({ order, showOrderedBy = false }: OrderCardProps) => {
   const tableNumber =
@@ -151,12 +145,14 @@ const OrderCard = ({ order, showOrderedBy = false }: OrderCardProps) => {
                     bg-surface
                   "
                 >
-                  <img
-                    src={getMenuItemImageUrl(item.uuid)}
-                    alt={item.name}
-                    className="h-full w-full object-contain p-1"
-                    draggable={false}
-                  />
+                  {menuPhotoUrl(item) ? (
+                    <img
+                      src={menuPhotoUrl(item)}
+                      alt={item.name}
+                      className="h-full w-full object-contain p-1"
+                      draggable={false}
+                    />
+                  ) : null}
                 </div>
 
                 {/* Item name */}

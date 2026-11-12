@@ -29,23 +29,42 @@ async function addMenuItem(menu) {
 /**
  * Add a dish to a category. The category is created when it does not exist.
  * The menu belongs to the whole POS stack, so every staff login sees the same dishes.
- * @param {{ menuName: string, name: string, price: number }} input
+ * @param {{ menuName: string, name: string, price: number, description?: string }} input
  */
-async function addDish({ menuName, name, price }) {
+async function addDish({ menuName, name, price, description }) {
   const existing = await docClient.send(new GetCommand({
     TableName: TABLE_NAME,
     Key: { menuName },
   }));
   const category = existing.Item ?? { menuName, bgColor: "#F8FAFC", icon: "", items: [] };
   const dish = { uuid: randomUUID(), name, price };
+  if (description) dish.description = description;
   const updated = { ...category, items: [...(category.items ?? []), dish] };
 
   await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: updated }));
   return { menuName, dish };
 }
 
+async function setDishImage(uuid, imageUrl) {
+  const data = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
+  for (const category of data.Items ?? []) {
+    const items = category.items ?? [];
+    const index = items.findIndex((item) => item.uuid === uuid);
+    if (index < 0) continue;
+    const nextItems = items.slice();
+    nextItems[index] = { ...nextItems[index], imageUrl };
+    await docClient.send(new PutCommand({
+      TableName: TABLE_NAME,
+      Item: { ...category, items: nextItems },
+    }));
+    return nextItems[index];
+  }
+  return null;
+}
+
 module.exports = {
   getAllMenuItems,
   addMenuItem,
   addDish,
+  setDishImage,
 };

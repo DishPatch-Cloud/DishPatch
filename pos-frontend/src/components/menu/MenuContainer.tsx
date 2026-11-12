@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addItems, removeItem } from "../../redux/slices/cartSlice";
 import type { AppDispatch, RootState } from "../../redux/store";
 import { AUDFormatter } from "../../utils/currency";
+import { menuPhotoUrl } from "../../utils/menuPhoto";
 import { getMenus } from "../../https";
 import useDragScroll from "../../hooks/useDragScroll";
 import useVerticalDragScroll from "../../hooks/useVerticalDragScroll";
@@ -17,6 +18,8 @@ interface MenuItem {
   uuid: string;
   name: string;
   price: number;
+  description?: string;
+  imageUrl?: string;
 }
 
 interface MenuCategory {
@@ -35,13 +38,6 @@ interface CartItem {
 interface MenusResponseData {
   data?: MenuCategory[];
 }
-
-const MENU_IMAGES_BASE_URL: string =
-  import.meta.env.VITE_MENU_IMAGES_BASE_URL ?? "";
-
-const getMenuItemImageUrl = (uuid: string): string => {
-  return `${MENU_IMAGES_BASE_URL}/${uuid}.png`;
-};
 
 const MenuContainer = () => {
   const [menus, setMenus] = useState<MenuCategory[]>([]);
@@ -130,10 +126,11 @@ const MenuContainer = () => {
 
   const handleIncrement = (item: MenuItem): void => {
     dispatch(
-      addItems({
+        addItems({
         uuid: item.uuid,
         name: item.name,
         pricePerQuantity: item.price,
+        imageUrl: item.imageUrl,
       })
     );
   };
@@ -268,14 +265,19 @@ const MenuContainer = () => {
                 <h3 className="min-h-[48px] text-base font-semibold leading-6 text-text-primary">
                   {item.name}
                 </h3>
+                {item.description ? (
+                  <p className="line-clamp-2 text-sm leading-5 text-text-secondary">{item.description}</p>
+                ) : null}
 
                 <div className="my-4 flex h-28 w-full items-center justify-center overflow-hidden rounded-xl bg-background">
-                  <img
-                    src={getMenuItemImageUrl(item.uuid)}
-                    alt={item.name}
-                    className="h-full w-full object-contain p-2"
-                    draggable={false}
-                  />
+                  {menuPhotoUrl(item) ? (
+                    <img
+                      src={menuPhotoUrl(item)}
+                      alt={item.name}
+                      className="h-full w-full object-contain p-2"
+                      draggable={false}
+                    />
+                  ) : null}
                 </div>
 
                 <div className="mt-auto flex items-center justify-between gap-3">

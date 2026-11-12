@@ -25,6 +25,8 @@ const config = Object.freeze({
   paymentsTable: process.env.PAYMENTS_TABLE || "Payments",
   tablesTable: process.env.TABLES_TABLE || "Tables",
   menuItemsTable: process.env.MENU_ITEMS_TABLE || "MenuItems",
+  menuPhotoBucket: process.env.MENU_PHOTO_BUCKET || "",
+  menuPhotoBaseUrl: process.env.MENU_PHOTO_BASE_URL || "",
 
 });
 

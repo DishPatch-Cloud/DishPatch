@@ -16,6 +16,7 @@
     "@aws-sdk/client-sqs": "^3.913.0",
     "@aws-sdk/client-ssm": "^3.891.0",
     "@aws-sdk/lib-dynamodb": "^3.890.0",
+    "@aws-sdk/s3-request-presigner": "^3.1045.0",
     "@vendia/serverless-express": "^4.12.6",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",

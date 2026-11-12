@@ -288,7 +288,9 @@ local run, but not in the deployed function.
 | `GET /api/table` | ✓ | | `200` | |
 | `PUT /api/table/:id` | ✓ | `status`, `seats`, `customerName`, `customerPhone`, `guests` — all optional | `200` | see [known issues](#known-issues) |
 | `GET /api/menu` | ✓ | | `200`, menus with their items | |
-| `POST /api/menu` | ✓ admin | `menuName` (category, 1–40 chars), `name` (dish, 1–80 chars), `price` (0–10000) | `201`, the new dish in `data` | `400` invalid field; `403` for staff or customer |
+| `POST /api/menu` | ✓ admin | `menuName` (category, 1–40 chars), `name` (dish, 1–80 chars), `price` (0–10000), optional `description` (up to 400 chars) | `201`, the new dish in `data` | `400` invalid field; `403` for staff or customer |
+| `POST /api/menu/:uuid/photo` | ✓ admin | `contentType`: `image/jpeg`, `image/png`, or `image/webp` | `200`, `uploadUrl` and `imageUrl` | `400`; `503` when photo storage is not configured |
+| `PUT /api/menu/:uuid/photo` | ✓ admin | `imageUrl` returned by the upload request | `200`, the dish | `400` when the address is not this dish's photo; `404` |
 | `GET /api/user/staff` | ✓ admin or staff | | `200`, every user in this stack with `role` | `403` for a customer |
 | `POST /api/user/claim-admin` | ✓ | | `200`, this account is now `admin` | `409` when any account is already `admin`, `owner` or `manager` |
 | `PUT /api/user/staff/:userId/role` | ✓ admin | `role`: `admin`, `staff` or `customer` | `200` | `400` invalid role or removing your own admin role; `404`; `403` |

@@ -98,22 +98,64 @@ Resources:
               - "*"
             AllowedMethods:
               - GET
+              - PUT
+              - HEAD
             AllowedHeaders:
               - "*"
             MaxAge: 3000
 
+  MenuPhotoOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-menu-photos"
+        Description: Reads menu photos from the private path through CloudFront
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  MenuPhotoDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "${AWS::StackName} menu photos"
+        PriceClass: PriceClass_200
+        Origins:
+          - Id: MenuPhotoOrigin
+            DomainName: !GetAtt MenuPhotoBucket.RegionalDomainName
+            OriginAccessControlId: !Ref MenuPhotoOriginAccessControl
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultCacheBehavior:
+          TargetOriginId: MenuPhotoOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+
   MenuPhotoBucketPolicy:
     Type: AWS::S3::BucketPolicy
+    DependsOn: MenuPhotoDistribution
     Properties:
       Bucket: !Ref MenuPhotoBucket
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
+          # Public read stays until every menu photo is loaded from CloudFront.
           - Sid: AllowPublicRead
             Effect: Allow
             Principal: "*"
             Action: "s3:GetObject"
             Resource: !Sub "${MenuPhotoBucket.Arn}/*"
+          - Sid: AllowCloudFrontRead
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${MenuPhotoBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${MenuPhotoDistribution}"
 
   # ---------------- DynamoDB ----------------
   UsersTable:
@@ -291,6 +333,12 @@ Resources:
                   - !GetAtt MenuItemsTable.Arn
                   - !Sub "${MenuItemsTable.Arn}/index/*"
 
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: !Sub "${MenuPhotoBucket.Arn}/*"
+
               # # SQS Access
               # - Effect: Allow
               #   Action:
@@ -322,6 +370,7 @@ Resources:
           TABLES_TABLE: !Ref TablesTable
           MENU_ITEMS_TABLE: !Ref MenuItemsTable
           MENU_PHOTO_BUCKET: !Ref MenuPhotoBucket
+          MENU_PHOTO_BASE_URL: !Sub "https://${MenuPhotoDistribution.DomainName}"
 
           AUTH0_DOMAIN: !Ref Auth0Domain
           AUTH0_AUDIENCE: !Ref Auth0Audience
@@ -435,6 +484,10 @@ Outputs:
   MenuPhotoBucketArn:
     Description: The ARN of the S3 bucket for menu photos
     Value: !GetAtt MenuPhotoBucket.Arn
+
+  MenuPhotoBaseUrl:
+    Description: CloudFront address for menu photos. The API stores this on each dish.
+    Value: !Sub "https://${MenuPhotoDistribution.DomainName}"
 
   UsersTableName:
     Value: !Ref UsersTable

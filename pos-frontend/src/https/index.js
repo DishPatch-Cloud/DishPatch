@@ -24,6 +24,10 @@ export const updateOrderStatus = ({ orderId, orderStatus }) =>
 // Menu Endpoints
 export const getMenus = () => axiosWrapper.get("/api/menu");
 export const addMenu = (data) => axiosWrapper.post("/api/menu", data);
+export const createMenuPhotoUpload = (uuid, contentType) =>
+  axiosWrapper.post(`/api/menu/${uuid}/photo`, { contentType });
+export const saveMenuPhoto = (uuid, imageUrl) =>
+  axiosWrapper.put(`/api/menu/${uuid}/photo`, { imageUrl });
 
 // Users in this location. Staff and admin can read the list. Admin can change a role.
 export const getStaff = () => axiosWrapper.get("/api/user/staff");
