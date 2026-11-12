@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { MdRestaurantMenu } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 
 import { getTables } from "../../https";
@@ -86,58 +85,25 @@ const TableInfo = () => {
   };
 
   return (
-    <section className="m-4 rounded-2xl border border-border bg-surface p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-4">
-        {/* Left */}
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-light">
-            <MdRestaurantMenu className="text-xl text-primary" />
-          </div>
-
-          <div>
-            <p className="text-xs text-text-secondary">
-              Dining Table
-            </p>
-
-            <p className="text-base font-semibold text-text-primary">
-              {customerData.table?.tableNo
-                ? `Table ${customerData.table.tableNo}`
-                : "Select Table"}
-            </p>
-          </div>
-        </div>
-
-        {/* Right */}
-        <select
-          value={customerData.table?.uuid ?? ""}
-          onChange={handleSelectTable}
-          className="
-            w-auto min-w-[135px]
-            cursor-pointer rounded-xl
-            border border-border bg-background
-            px-3 py-2
-            text-sm font-medium text-text-primary
-            outline-none transition
-            hover:border-primary/50
-            focus:border-primary
-            focus:ring-4 focus:ring-primary/10
-          "
-        >
-          <option value="" disabled>
-            Select
+    <label className="flex items-center justify-between gap-3">
+      <span className="font-display text-2xl font-semibold text-[#4a2c17]">
+        Table
+      </span>
+      <select
+        value={customerData.table?.uuid ?? ""}
+        onChange={handleSelectTable}
+        className="cursor-pointer rounded-full border border-[#eadccb] bg-white/80 px-4 py-2 text-sm font-semibold text-[#4a2c17] outline-none transition focus:border-[#e9b949] focus:ring-4 focus:ring-[#e9b949]/30"
+      >
+        <option value="" disabled>
+          Choose
+        </option>
+        {tables.map((table) => (
+          <option key={table.uuid} value={table.uuid}>
+            {table.tableNo}
           </option>
-
-          {tables.map((table) => (
-            <option
-              key={table.uuid}
-              value={table.uuid}
-            >
-              Table {table.tableNo}
-            </option>
-          ))}
-        </select>
-      </div>
-    </section>
+        ))}
+      </select>
+    </label>
   );
 };
 

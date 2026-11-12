@@ -143,25 +143,19 @@ const OrderSummary = () => {
   };
 
   return (
-    <section className="bg-surface px-5 py-4">
-      {/* Total */}
+    <section className="bg-[#fffaf3] px-5 py-4">
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-sm font-medium text-text-secondary">
+          <p className="font-display text-xl font-semibold text-[#4a2c17]">
             Total
           </p>
-
-          <p className="mt-1 text-xs text-text-muted">
-            Includes GST
-          </p>
+          <p className="text-xs text-[#6b4a33]">Includes GST</p>
         </div>
-
-        <p className="text-xl font-bold text-text-primary">
+        <p className="font-display text-3xl font-semibold text-[#4a2c17]">
           {AUDFormatter.format(total)}
         </p>
       </div>
 
-      {/* Place order */}
       <button
         data-no-drag
         type="button"
@@ -171,17 +165,7 @@ const OrderSummary = () => {
           orderMutation.isPending ||
           cartData.length === 0
         }
-        className="
-          mt-5 w-full rounded-xl bg-primary
-          px-4 py-3.5
-          text-base font-semibold text-white
-          shadow-sm transition duration-200
-          hover:bg-primary-hover
-          focus:outline-none
-          focus:ring-4 focus:ring-primary/20
-          disabled:cursor-not-allowed
-          disabled:opacity-50
-        "
+        className="mt-4 w-full rounded-full bg-[#e9b949] px-4 py-3.5 text-base font-semibold text-[#4a2c17] transition hover:bg-[#f0c85a] focus:outline-none focus:ring-4 focus:ring-[#e9b949]/40 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPlacingOrder || orderMutation.isPending
           ? "Placing order..."

@@ -9,6 +9,7 @@ import MenuContainer from "../components/menu/MenuContainer";
 import TableInfo from "../components/menu/TableInfo";
 import CartInfo from "../components/menu/CartInfo";
 import OrderSummary from "../components/menu/OrderSummary";
+import useVerticalDragScroll from "../hooks/useVerticalDragScroll";
 import type { RootState } from "../redux/store";
 import { canEditMenu } from "../utils/roles";
 
@@ -18,6 +19,7 @@ const Menu = () => {
   const cart = useSelector((state: RootState) => state.cart);
   const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const cartScrollRef = useVerticalDragScroll();
 
   const openCart = () => {
     setIsCartOpen(true);
@@ -76,8 +78,8 @@ const Menu = () => {
       <aside
         className={`
           fixed z-50 flex min-h-0 flex-col overflow-hidden
-          border border-white/80 bg-white/90
-          shadow-[0_18px_50px_rgba(28,16,10,0.28)]
+          border border-white/80 bg-[#fffaf3]/95
+          shadow-[0_18px_50px_rgba(74,44,23,0.28)]
           transition-transform duration-300 ease-out
           inset-x-0 bottom-20 h-[calc(100dvh-10rem)] rounded-t-3xl
           lg:inset-x-auto lg:bottom-20 lg:right-0 lg:top-20 lg:h-auto lg:w-[420px] lg:rounded-l-3xl lg:rounded-tr-none
@@ -105,19 +107,16 @@ const Menu = () => {
           </button>
         </div>
 
-        {/* Fixed table information */}
-        <div className="shrink-0">
+        <div
+          ref={cartScrollRef}
+          style={{ touchAction: "pan-y" }}
+          className="min-h-0 flex-1 cursor-grab overflow-y-auto overscroll-contain px-5 py-4 scrollbar-hide active:cursor-grabbing"
+        >
           <TableInfo />
-        </div>
-
-        {/* CartInfo receives the remaining fixed height */}
-        <div className="min-h-0 flex-1 overflow-hidden">
-          <hr className="border-border" />
           <CartInfo />
         </div>
 
-        {/* Fixed order summary */}
-        <div className="shrink-0 border-t border-border bg-surface">
+        <div className="shrink-0 border-t border-[#eadccb]">
           <OrderSummary />
         </div>
       </aside>
