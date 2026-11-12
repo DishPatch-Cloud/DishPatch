@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { enqueueSnackbar } from "notistack";
@@ -42,6 +43,7 @@ interface AddOrderResponse {
 
 const OrderSummary = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const customerData = useSelector(
@@ -96,6 +98,7 @@ const OrderSummary = () => {
       dispatch(removeAllItems());
 
       setIsPlacingOrder(false);
+      navigate("/orders");
     },
 
     onError: (error: unknown) => {

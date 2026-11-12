@@ -39,7 +39,7 @@ const Orders = () => {
   const dragScrollRef = useVerticalDragScroll();
 
   useEffect(() => {
-    document.title = "POS | Order History";
+    document.title = "POS | Orders";
   }, []);
 
   const {
@@ -130,12 +130,12 @@ const Orders = () => {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-                Order History
+                Orders
               </h1>
 
               <p className="mt-1 text-sm text-text-secondary">
                 {restaurantView
-                  ? "Restaurant orders. Filter to one person's history."
+                  ? "Restaurant orders. Filter to one person."
                   : "View the progress and details of your orders."}
               </p>
               {restaurantView && (

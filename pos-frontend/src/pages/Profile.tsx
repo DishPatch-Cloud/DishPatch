@@ -148,8 +148,8 @@ const Profile = () => {
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <ProfileAction
                 icon={<FaReceipt size={20} />}
-                title="Order History"
-                description="View your recent orders and their status."
+                title="Orders"
+                description="View your orders and their status."
                 onClick={() => navigate("/orders")}
               />
 
