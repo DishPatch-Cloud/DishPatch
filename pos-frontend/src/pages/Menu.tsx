@@ -33,7 +33,7 @@ const Menu = () => {
         <MenuContainer
           header={
             <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-1 pt-4 sm:px-6">
-              <h1 className="font-display text-4xl font-semibold tracking-tight text-[#141a22]">
+              <h1 className="font-display text-4xl font-semibold tracking-tight text-[#4a2c17]">
                 Menu
               </h1>
 
@@ -41,7 +41,7 @@ const Menu = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/menu/edit")}
-                  className="glass-plate rounded-full px-4 py-2 text-sm font-semibold text-[#141a22] transition hover:-translate-y-0.5"
+                  className="glass-plate rounded-full px-4 py-2 text-sm font-semibold text-[#4a2c17] transition hover:-translate-y-0.5"
                 >
                   Edit menu
                 </button>
@@ -54,12 +54,12 @@ const Menu = () => {
       <button
         type="button"
         onClick={openCart}
-        className="glass-plate fixed bottom-24 right-4 z-30 flex items-center gap-3 rounded-full px-4 py-3 text-sm font-semibold text-[#141a22] transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-white/40"
+        className="glass-plate fixed bottom-24 right-4 z-30 flex items-center gap-3 rounded-full px-4 py-3 text-sm font-semibold text-[#4a2c17] transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-white/40"
         aria-label={`View cart, ${itemCount} items`}
       >
         <BiCart size={22} />
         View cart
-        <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-[#141a22] px-2 text-xs font-semibold text-white">
+        <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-[#4a2c17] px-2 text-xs font-semibold text-white">
           {itemCount}
         </span>
       </button>
@@ -86,7 +86,7 @@ const Menu = () => {
         aria-hidden={!isCartOpen}
       >
         {/* Drawer header */}
-        <div className="flex shrink-0 items-center justify-between bg-[#141a22] px-5 py-4 text-white">
+        <div className="flex shrink-0 items-center justify-between bg-[#4a2c17] px-5 py-4 text-white">
           <div className="flex items-center gap-2">
             <BiCart className="text-xl" />
 

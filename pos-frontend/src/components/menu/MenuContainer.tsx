@@ -124,7 +124,7 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
 
   if (menus.length === 0) {
     return (
-      <p className="mt-10 text-center text-sm text-[#1c2430]">
+      <p className="mt-10 text-center text-sm text-[#a8741f]">
         Loading menus...
       </p>
     );
@@ -143,20 +143,20 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
           layout === "rail"
             ? `flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left transition ${
                 active
-                  ? "glass-plate text-[#141a22]"
-                  : "text-white hover:bg-white/10"
+                  ? "bg-[#e9b949] text-[#4a2c17] shadow-sm"
+                  : "text-[#fff8ea] hover:bg-[#6e4526]"
               }`
             : `flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-left transition ${
                 active
-                  ? "glass-plate text-[#141a22]"
-                  : "border border-white/25 text-white hover:bg-white/10"
+                  ? "bg-[#e9b949] text-[#4a2c17] shadow-sm"
+                  : "border border-[#8a5a32] text-[#fff8ea] hover:bg-[#6e4526]"
               }`
         }
       >
         <span className={`font-display font-semibold leading-none ${layout === "rail" ? "text-xl" : "text-lg"}`}>
           {menu.menuName}
         </span>
-        <span className={`text-xs font-medium ${active ? "text-[#5c6774]" : "text-white/70"}`}>
+        <span className={`text-xs font-medium ${active ? "text-[#4a2c17]/70" : "text-[#fff8ea]/70"}`}>
           {count}
         </span>
       </button>
@@ -175,7 +175,7 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
           onClick={() => setRailOpen((open) => !open)}
           aria-expanded={railOpen}
           aria-label={railOpen ? "Collapse categories" : "Expand categories"}
-          className={`flex items-center rounded-2xl py-2 text-white/80 transition hover:bg-white/10 hover:text-white ${
+          className={`flex items-center rounded-2xl py-2 text-[#f3d68f] transition hover:bg-[#6e4526] hover:text-[#fff8ea] ${
             railOpen ? "justify-between px-3" : "justify-center"
           }`}
         >
@@ -230,15 +230,15 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
                       />
                     ) : null}
                     {quantity > 0 && (
-                      <span className="absolute right-2 top-2 rounded-full bg-[#141a22] px-2.5 py-1 text-xs font-semibold text-white">
+                      <span className="absolute right-2 top-2 rounded-full bg-[#4a2c17] px-2.5 py-1 text-xs font-semibold text-white">
                         {quantity}
                       </span>
                     )}
                   </div>
-                  <h3 className="mt-3 px-1 font-display text-2xl font-semibold leading-7 text-[#141a22]">
+                  <h3 className="mt-3 px-1 font-display text-2xl font-semibold leading-7 text-[#4a2c17]">
                     {item.name}
                   </h3>
-                  <p className="mt-auto px-1 pt-3 font-display text-xl font-semibold text-[#1c2430]">
+                  <p className="mt-auto px-1 pt-3 font-display text-xl font-semibold text-[#a8741f]">
                     {AUDFormatter.format(item.price)}
                   </p>
                 </button>
@@ -247,7 +247,7 @@ const MenuContainer = ({ header }: MenuContainerProps) => {
 
             {selected?.items?.length === 0 && (
               <div className="glass-plate col-span-full flex min-h-48 items-center justify-center rounded-3xl">
-                <p className="text-sm text-[#3d4754]">
+                <p className="text-sm text-[#6b4a33]">
                   No dishes in this category.
                 </p>
               </div>
