@@ -368,6 +368,16 @@ node .\seedTables.js
 ```
 The scripts will fetch the data defined in pos-backend/constants/index.js and upload to DynamoDB tables.
 
+Menu photos are in a private S3 bucket and are served through the stack's CloudFront distribution. To give the seeded dishes their photos, set these from the POS backend stack outputs and run the photo seed from the same folder:
+```
+$env:MENU_PHOTO_BUCKET = "<MenuPhotoBucketName>"
+$env:MENU_PHOTO_BASE_URL = "<MenuPhotoBaseUrl>"
+$env:MENU_ITEMS_TABLE = "<MenuItemsTableName>"
+node .\seedMenuPhotos.js --dry-run
+node .\seedMenuPhotos.js
+```
+It uploads each `resources/<dish uuid>.png` to `menu/<dish uuid>.png` and saves the CloudFront address on that dish as `imageUrl`.
+
 ### Local Testing - POS Frontend
 
 Create this **.env** file in pos-frontend folder.
@@ -376,9 +386,9 @@ Create this **.env** file in pos-frontend folder.
 # .env
 # Replace with your local backend setting
 VITE_BACKEND_URL=http://localhost:3000/
-# Replace with your S3 bucket that stores menu photo
-VITE_MENU_IMAGES_BASE_URL=https://dishpatch-pos-backend-menu-photo.s3.ap-southeast-2.amazonaws.com
 ```
+
+Menu photos need no frontend setting. Each dish from the API carries its own `imageUrl`.
 
 ### Local Testing - Robot Visualiser
 

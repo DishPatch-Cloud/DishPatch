@@ -93,7 +93,7 @@ const MenuEditor = () => {
           <p className="mt-2 text-sm leading-6 text-text-secondary">
             Add a dish to this location's menu. Everyone here sees the same menu.
             A new category is created when the category name is new.
-            The description is shown on the dish. A photo is stored for this dish and shown from its saved address. Dishes that already have a picture keep using it.
+            The description is shown on the dish. A photo is stored for this dish and shown from its saved address.
           </p>
           <form
             className="mt-6 space-y-4 rounded-2xl border border-border bg-surface p-5 shadow-card"

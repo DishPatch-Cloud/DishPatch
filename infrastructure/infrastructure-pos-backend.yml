@@ -87,29 +87,28 @@ Resources:
       BucketName: !Sub "${AWS::StackName}-menu-photo"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
-        BlockPublicPolicy: false
+        BlockPublicPolicy: true
         IgnorePublicAcls: true
-        RestrictPublicBuckets: false
+        RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
-      CorsConfiguration:
-        CorsRules:
-          - AllowedOrigins:
-              - "*"
-            AllowedMethods:
-              - GET
-              - PUT
-              - HEAD
-            AllowedHeaders:
-              - "*"
-            MaxAge: 3000
+      CorsConfiguration: !If
+        - UseCors
+        - CorsRules:
+            - AllowedOrigins: !Ref CorsAllowOrigins
+              AllowedMethods:
+                - PUT
+              AllowedHeaders:
+                - "*"
+              MaxAge: 3000
+        - !Ref AWS::NoValue
 
   MenuPhotoOriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
         Name: !Sub "${AWS::StackName}-menu-photos"
-        Description: Reads menu photos from the private path through CloudFront
+        Description: Reads menu photos from the private bucket through CloudFront
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
@@ -141,18 +140,12 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          # Public read stays until every menu photo is loaded from CloudFront.
-          - Sid: AllowPublicRead
-            Effect: Allow
-            Principal: "*"
-            Action: "s3:GetObject"
-            Resource: !Sub "${MenuPhotoBucket.Arn}/*"
           - Sid: AllowCloudFrontRead
             Effect: Allow
             Principal:
               Service: cloudfront.amazonaws.com
             Action: s3:GetObject
-            Resource: !Sub "${MenuPhotoBucket.Arn}/*"
+            Resource: !Sub "${MenuPhotoBucket.Arn}/menu/*"
             Condition:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${MenuPhotoDistribution}"
@@ -335,9 +328,8 @@ Resources:
 
               - Effect: Allow
                 Action:
-                  - s3:GetObject
                   - s3:PutObject
-                Resource: !Sub "${MenuPhotoBucket.Arn}/*"
+                Resource: !Sub "${MenuPhotoBucket.Arn}/menu/*"
 
               # # SQS Access
               # - Effect: Allow
